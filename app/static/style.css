@@ -91,6 +91,7 @@ h2 {
 }
 
 .card {
+  overflow-x: auto; /* широкие таблицы прокручиваются внутри карточки */
   background: var(--surface);
   border: 2px solid var(--ink);
   border-radius: 10px;
@@ -335,6 +336,15 @@ th {
 @media (max-width: 800px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .grid > * {
+    min-width: 0;
+  }
+
+  .toolbar input,
+  .toolbar select {
+    flex: 1 1 140px;
   }
 
   .bar {
