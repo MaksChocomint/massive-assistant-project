@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Голосовой помощник — команды и справочник</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div>
+          <h1>MASSIVE<span>.</span>помощник</h1>
+          <p class="muted">Команды пользователей, справочник намерений и аналитика</p>
+        </div>
+        <a class="link" href="/docs" target="_blank">Swagger API →</a>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="commands">Команды</button>
+        <button class="tab" data-tab="intents">Намерения</button>
+        <button class="tab" data-tab="analytics">Аналитика</button>
+      </nav>
+
+      <div id="error" class="error" role="alert" hidden></div>
+
+      <!-- Команды -->
+      <section id="commands" class="page">
+        <div class="grid">
+          <form id="command-form" class="card">
+            <h2>Новая команда</h2>
+            <label>Пользователь <select id="command-user"></select></label>
+            <label
+              >Текст команды
+              <input id="command-text" placeholder="например: поставь будильник" maxlength="300" />
+            </label>
+            <button class="button primary">Отправить</button>
+            <div id="command-result"></div>
+          </form>
+          <form id="user-form" class="card">
+            <h2>Новый пользователь</h2>
+            <label>Логин <input id="user-username" placeholder="maria" /></label>
+            <label>Имя <input id="user-name" placeholder="Мария" /></label>
+            <button class="button">Создать</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="toolbar">
+            <h2>История команд</h2>
+            <select id="command-status">
+              <option value="">Все статусы</option>
+              <option value="needs_clarification">Ждёт уточнения</option>
+              <option value="completed">Выполнена</option>
+              <option value="cancelled">Отменена</option>
+              <option value="failed">Не удалась</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Текст</th>
+                <th>Намерение</th>
+                <th>Параметры</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody id="command-rows"></tbody>
+          </table>
+          <div class="pager" id="command-pager"></div>
+        </div>
+      </section>
+
+      <!-- Намерения -->
+      <section id="intents" class="page" hidden>
+        <div class="grid">
+          <div class="card">
+            <div class="toolbar">
+              <h2>Намерения</h2>
+              <input id="intent-search" placeholder="Поиск по названию" />
+              <select id="intent-scenario">
+                <option value="">Все сценарии</option>
+              </select>
+              <select id="intent-sort">
+                <option value="id">по id</option>
+                <option value="name">по названию</option>
+                <option value="-name">по названию (я→а)</option>
+              </select>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Код</th>
+                  <th>Название</th>
+                  <th>Фраз</th>
+                  <th>Активно</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="intent-rows"></tbody>
+            </table>
+            <div class="pager" id="intent-pager"></div>
+          </div>
+          <form id="intent-form" class="card">
+            <h2 id="intent-form-title">Новое намерение</h2>
+            <input type="hidden" id="intent-id" />
+            <label>Код <input id="intent-code" placeholder="alarm_snooze" /></label>
+            <label>Название <input id="intent-name" placeholder="Отложить будильник" /></label>
+            <label>Сценарий <select id="intent-scenario-id"></select></label>
+            <label class="check"><input type="checkbox" id="intent-active" checked /> Активно</label>
+            <div class="row">
+              <button class="button primary">Сохранить</button>
+              <button type="button" class="button" id="intent-reset">Очистить</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Аналитика -->
+      <section id="analytics" class="page" hidden>
+        <div class="tiles" id="summary"></div>
+        <div class="grid">
+          <div class="card">
+            <h2>Топ-5 намерений</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Намерение</th>
+                  <th>Команд</th>
+                  <th>Успешно</th>
+                </tr>
+              </thead>
+              <tbody id="top-rows"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Команды по дням</h2>
+            <div id="days" class="bars"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Фразы датасета по сценариям</h2>
+          <div id="dataset" class="bars"></div>
+        </div>
+      </section>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

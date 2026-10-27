@@ -177,6 +177,7 @@ def test_train_nlu(client: TestClient) -> None:
     assert 0.5 < result["dev_accuracy"] <= 1
 
 
-def test_health_and_docs(client: TestClient) -> None:
+def test_health_and_ui(client: TestClient) -> None:
     assert client.get("/api/health").json() == {"status": "ok"}
+    assert client.get("/").status_code == 200
     assert client.get("/docs").status_code == 200
