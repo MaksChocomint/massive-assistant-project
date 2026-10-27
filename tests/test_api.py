@@ -151,6 +151,32 @@ def test_list_commands_with_filters(client: TestClient) -> None:
 # --- аналитика и служебное -------------------------------------------------------------
 
 
+def test_analytics(client: TestClient) -> None:
+    uid = first_user(client)
+    for text in ("поставь будильник", "разбуди меня в семь утра", "расскажи шутку"):
+        client.post("/api/commands", json={"user_id": uid, "text": text})
+
+    top = client.get("/api/analytics/top-intents", params={"limit": 1}).json()
+    assert top[0]["intent"] == "alarm_set"
+    assert top[0]["commands"] == 2
+    assert top[0]["success_rate"] == 0.5
+
+    summary = client.get("/api/analytics/status-summary").json()
+    assert summary["total"] == 3
+    assert summary["by_status"] == {"needs_clarification": 1, "completed": 2}
+
+    days = client.get("/api/analytics/commands-by-day").json()
+    assert sum(d["commands"] for d in days) == 3
+    dataset = client.get("/api/analytics/dataset").json()
+    assert sum(s["utterances"] for s in dataset) > 200
+
+
+def test_train_nlu(client: TestClient) -> None:
+    result = client.post("/api/nlu/train").json()
+    assert result["trained_on"] > 200
+    assert 0.5 < result["dev_accuracy"] <= 1
+
+
 def test_health_and_docs(client: TestClient) -> None:
     assert client.get("/api/health").json() == {"status": "ok"}
     assert client.get("/docs").status_code == 200
