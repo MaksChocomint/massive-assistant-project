@@ -4,7 +4,7 @@ import logging
 
 from fastapi import FastAPI
 
-from app.api import catalog, commands
+from app.api import analytics, catalog, commands
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 
@@ -20,7 +20,7 @@ app = FastAPI(
 )
 register_error_handlers(app)
 
-for router in (catalog.router, commands.router):
+for router in (catalog.router, commands.router, analytics.router):
     app.include_router(router, prefix="/api")
 
 
