@@ -59,5 +59,9 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Миграции вверх
         run: alembic upgrade head
+      - name: ETL два раза (идемпотентность)
+        run: |
+          python -m app.etl.import_massive --source tests/fixtures/sample.csv
+          python -m app.etl.import_massive --source tests/fixtures/sample.csv
       - name: Откат миграций
         run: alembic downgrade base
