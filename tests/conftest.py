@@ -1,6 +1,7 @@
 """Тестовая БД — SQLite в памяти: отдельная от рабочей и пересоздаётся для каждого теста."""
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, event
@@ -9,6 +10,8 @@ from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401 — регистрирует таблицы в Base.metadata
 from app.db import Base
+
+SAMPLE = Path(__file__).parent / "fixtures" / "sample.csv"
 
 engine = create_engine(
     "sqlite+pysqlite:///:memory:",
