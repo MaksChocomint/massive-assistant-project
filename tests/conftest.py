@@ -4,12 +4,16 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app import models  # noqa: F401 — регистрирует таблицы в Base.metadata
-from app.db import Base
+from app.db import Base, get_db
+from app.etl.import_massive import run
+from app.main import app
+from app.models import User
+from app.services.nlu import reset_nlu
 
 SAMPLE = Path(__file__).parent / "fixtures" / "sample.csv"
 
@@ -36,3 +40,21 @@ def db() -> Iterator[Session]:
     session = TestingSession()
     yield session
     session.close()
+
+
+@pytest.fixture
+def loaded_db(db: Session) -> Session:
+    """БД со справочником из тестового CSV (8 намерений) и одним пользователем."""
+    run(db, SAMPLE)
+    db.add(User(username="ivan", name="Иван"))
+    db.commit()
+    reset_nlu()
+    return db
+
+
+@pytest.fixture
+def client(loaded_db: Session) -> Iterator[TestClient]:
+    app.dependency_overrides[get_db] = lambda: loaded_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
