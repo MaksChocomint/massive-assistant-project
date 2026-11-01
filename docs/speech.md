@@ -53,3 +53,7 @@ WAV-примеры tests/fixtures/audio созданы локально голо
 через Windows Speech API; это синтетическая речь, а не записи пользователей.
 Результат на трёх образцах не является оценкой WER или доказательством качества
 на живой речи и шумном микрофоне. Для этого нужны отдельные испытания на устройстве.
+
+Проверка API вручную (в PowerShell используйте curl.exe вместо curl):
+
+    curl -F "audio=@tests/fixtures/audio/alarm.wav" http://localhost:8010/api/speech/transcribe
