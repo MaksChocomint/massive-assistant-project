@@ -282,7 +282,7 @@ data/            CSV датасета
 - ветки `feat/*`, `docs/*` → Pull Request в защищённую `main`;
 - коммиты с префиксами `feat:`, `fix:`, `test:`, `docs:`, `chore:`, `ci:`;
 - CI (GitHub Actions): ruff, pytest с покрытием ≥ 70 %, миграции вверх/вниз и ETL на PostgreSQL;
-- слияние только после Approve и зелёного CI.
+- слияние после просмотра изменений автором и зелёного CI; внешний ревьюер необязателен.
 
 Публичный репозиторий: [MaksChocomint/massive-assistant-project](https://github.com/MaksChocomint/massive-assistant-project).
 Проверки: [GitHub Actions](https://github.com/MaksChocomint/massive-assistant-project/actions).
