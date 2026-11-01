@@ -20,3 +20,6 @@ output/*
 build/
 dist/
 *.egg-info/
+# Local course handouts
+/*.docx
+/*.pdf
