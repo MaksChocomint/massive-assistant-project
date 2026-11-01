@@ -1,5 +1,6 @@
 """Настройки приложения. Значения берутся из переменных окружения или файла .env."""
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,7 +9,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://app:app@localhost:5432/assistant"
     # Сколько раз можно уточнять одну команду, прежде чем она получит статус failed
-    max_clarifications: int = 3
+    max_clarifications: int = Field(default=3, ge=1, le=20)
     log_level: str = "INFO"
 
 

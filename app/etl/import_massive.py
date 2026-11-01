@@ -63,7 +63,7 @@ class Report:
 
 
 def extract(path: Path) -> list[dict[str, str]]:
-    with path.open(encoding="utf-8", newline="") as f:
+    with path.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         missing = set(REQUIRED_COLUMNS) - set(reader.fieldnames or [])
         if missing:
@@ -81,9 +81,13 @@ def normalize_text(text: str) -> str:
 
 def parse_slot_types(annotated: str) -> list[str] | None:
     """Типы параметров из разметки «[time : семь утра]». None — разметка сломана."""
-    if annotated.count("[") != annotated.count("]"):
+    remainder = SLOT_PATTERN.sub("", annotated)
+    if "[" in remainder or "]" in remainder:
         return None
-    return [match.group(1) for match in SLOT_PATTERN.finditer(annotated)]
+    matches = list(SLOT_PATTERN.finditer(annotated))
+    if any(not match.group(2).strip() for match in matches):
+        return None
+    return [match.group(1) for match in matches]
 
 
 def clean(rows: list[dict[str, str]], report: Report) -> list[CleanRow]:
@@ -99,24 +103,29 @@ def clean(rows: list[dict[str, str]], report: Report) -> list[CleanRow]:
         intent = (row.get("intent") or "").strip()
         scenario = (row.get("scenario") or "").strip()
         partition = (row.get("partition") or "").strip()
+        annotated = (row.get("annot_utt") or "").strip()
 
-        if not external_id or not text or not intent or not scenario:
+        if not external_id or not text or not intent or not scenario or not annotated:
             reason = "пустое поле"
+        elif len(external_id) > 20 or any(
+            not re.fullmatch(r"[a-z_]{1,50}", value) for value in (intent, scenario)
+        ):
+            reason = "некорректный идентификатор"
         elif partition not in PARTITIONS:
             reason = "неизвестный partition"
         elif external_id in seen_ids:
             reason = "повтор id"
         elif (text.lower(), intent) in seen_texts:
             reason = "дубликат фразы"
-        elif (slots := parse_slot_types(row.get("annot_utt") or "")) is None:
+        elif (slots := parse_slot_types(annotated)) is None:
             reason = "сломанная разметка"
+        elif normalize_text(SLOT_PATTERN.sub(lambda m: m.group(2), annotated)) != text:
+            reason = "разметка не соответствует фразе"
         else:
             seen_ids.add(external_id)
             seen_texts.add((text.lower(), intent))
             result.append(
-                CleanRow(
-                    external_id, partition, scenario, intent, text, row["annot_utt"].strip(), slots
-                )
+                CleanRow(external_id, partition, scenario, intent, text, annotated, slots)
             )
             continue
         report.rejected[reason] += 1

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
@@ -32,7 +32,10 @@ def list_intents(
     scenario_id: int | None = None,
     search: Annotated[str | None, Query(description="Поиск по названию или коду")] = None,
     active: bool | None = None,
-    sort: Annotated[str, Query(description="id, code, name; «-» — по убыванию")] = "id",
+    sort: Annotated[
+        Literal["id", "-id", "code", "-code", "name", "-name"],
+        Query(description="id, code, name; «-» — по убыванию"),
+    ] = "id",
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> Page[IntentRead]:

@@ -13,8 +13,10 @@ router = APIRouter(prefix="/commands", tags=["Команды"])
 CommandStatus = Literal["needs_clarification", "completed", "cancelled", "failed"]
 DB = Annotated[Session, Depends(get_db)]
 ERRORS = {
+    400: {"model": ErrorResponse, "description": "Команда не распознана или ответ не подходит"},
     404: {"model": ErrorResponse, "description": "Команда или пользователь не найдены"},
     409: {"model": ErrorResponse, "description": "Действие недоступно в текущем статусе"},
+    503: {"model": ErrorResponse, "description": "Недостаточно обучающих данных"},
 }
 
 

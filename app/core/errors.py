@@ -36,6 +36,11 @@ class BusinessError(AppError):
     code = "business_rule"
 
 
+class ServiceUnavailableError(AppError):
+    status_code = 503
+    code = "service_unavailable"
+
+
 def error_response(status: int, code: str, message: str, details: object = None) -> JSONResponse:
     body: dict[str, object] = {"code": code, "message": message}
     if details is not None:

@@ -10,6 +10,7 @@
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from threading import RLock
 
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -18,14 +19,21 @@ from sklearn.svm import LinearSVC
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.errors import BusinessError, ServiceUnavailableError
 from app.etl.import_massive import SLOT_PATTERN
 from app.models import Intent, Utterance
 
 # Значения, которые точно похожи на время или дату
+NUMBER = (
+    r"(?:\d+|один|одну|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять|"
+    r"одиннадцать|двенадцать|пятнадцать|двадцать|тридцать|сорок|пятьдесят)"
+)
 TIME_RE = re.compile(
-    r"\b(\d{1,2}[:.]\d{2}|\d{1,2} (час\w*|утра|вечера|дня|ночи)|"
+    r"\b((?:[01]?\d|2[0-3])[:.][0-5]\d(?![\d:.])|"
+    r"(?:[01]?\d|2[0-3]) (час\w*|утра|вечера|дня|ночи)|"
     r"(один|два|три|четыре|пять|шесть|семь|восемь|девять|десять|одиннадцать|двенадцать)"
-    r"( час\w*)? (утра|вечера|дня|ночи)|через \S+( минут\w*| час\w*)?|полдень|полночь)\b"
+    r"( час\w*)? (утра|вечера|дня|ночи)|"
+    rf"через (?:{NUMBER} (?:минут\w*|час\w*)|час|полчаса)|полдень|полночь)\b"
 )
 DATE_RE = re.compile(
     r"\b(сегодня|завтра|послезавтра|понедельник|вторник|сред[ау]|четверг|пятниц[ау]|"
@@ -38,7 +46,7 @@ FORMAT_RULES = {"time": TIME_RE, "date": DATE_RE}
 def normalize(text: str) -> str:
     """Нижний регистр, ё → е, без знаков препинания (кроме двоеточия во времени)."""
     text = text.lower().replace("ё", "е")
-    text = re.sub(r"[^\w\s:-]", " ", text)
+    text = re.sub(r"[^\w\s:.-]", " ", text)
     return " ".join(text.split())
 
 
@@ -88,9 +96,14 @@ class Nlu:
             .where(Utterance.partition == "train", Intent.is_active.is_(True))
         ).all()
         if not rows:
-            raise RuntimeError("В БД нет фраз для обучения — сначала запустите ETL")
+            raise ServiceUnavailableError("В БД нет фраз для обучения — запустите ETL")
+        counts = Counter(r.code for r in rows)
+        if len(counts) < 2 or min(counts.values()) < 3:
+            raise ServiceUnavailableError(
+                "Для обучения нужны хотя бы 2 активных намерения и по 3 обучающие фразы на каждое"
+            )
 
-        self.model = Pipeline(
+        model = Pipeline(
             [
                 (
                     "features",
@@ -102,10 +115,11 @@ class Nlu:
                     ),
                 ),
                 # калибровка превращает оценки LinearSVC в вероятности (уверенность 0–1)
-                ("clf", CalibratedClassifierCV(LinearSVC(C=1.0), cv=3)),
+                ("clf", CalibratedClassifierCV(LinearSVC(C=1.0, random_state=42), cv=3)),
             ]
         )
-        self.model.fit([normalize(r.text) for r in rows], [r.code for r in rows])
+        model.fit([normalize(r.text) for r in rows], [r.code for r in rows])
+        self.model = model
         self.intent_ids = {r.code: r.id for r in rows}
 
         self.slot_values = build_slot_values([r.annotated for r in rows])
@@ -114,6 +128,9 @@ class Nlu:
 
     def predict(self, text: str) -> Prediction:
         assert self.model is not None, "модель не обучена"
+        features = self.model.named_steps["features"].transform([normalize(text)])
+        if features.nnz == 0:
+            raise BusinessError("Команда не содержит знакомых модели слов. Переформулируйте запрос")
         probabilities = self.model.predict_proba([normalize(text)])[0]
         best = int(probabilities.argmax())
         code = str(self.model.classes_[best])
@@ -144,15 +161,29 @@ class Nlu:
 
 
 _nlu = Nlu()
+_model_lock = RLock()
 
 
 def get_nlu(db: Session) -> Nlu:
     """Модель обучается один раз — при первой команде."""
-    if _nlu.model is None:
-        _nlu.train(db)
-    return _nlu
+    with _model_lock:
+        if _nlu.model is None:
+            _nlu.train(db)
+        return _nlu
+
+
+def train_nlu(db: Session) -> Nlu:
+    """Публикует новую модель только после успешного обучения целиком."""
+    global _nlu
+    with _model_lock:
+        candidate = Nlu()
+        candidate.train(db)
+        _nlu = candidate
+        return candidate
 
 
 def reset_nlu() -> None:
     """Сбросить модель (после повторного импорта данных или в тестах)."""
-    _nlu.model = None
+    global _nlu
+    with _model_lock:
+        _nlu = Nlu()

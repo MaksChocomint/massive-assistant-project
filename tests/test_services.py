@@ -4,10 +4,10 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.errors import BusinessError, ConflictError, NotFoundError
-from app.models import Intent, User
+from app.core.errors import BusinessError, ConflictError, NotFoundError, ServiceUnavailableError
+from app.models import Intent, User, Utterance
 from app.services import catalog, commands
-from app.services.nlu import get_nlu
+from app.services.nlu import Nlu, get_nlu, train_nlu
 
 
 def user_id(db: Session) -> int:
@@ -88,3 +88,38 @@ def test_find_slot(loaded_db: Session) -> None:
     assert nlu.find_slot("date", "что будет завтра") == "завтра"
     assert nlu.find_slot("time", "просто текст") is None
     assert nlu.find_slot("transport_type", "билет на поезд до казани") is not None
+
+
+@pytest.mark.parametrize("text", ["99:99", "25:15", "7:70", "через музыку", "99 часов"])
+def test_invalid_time_is_rejected(text: str) -> None:
+    assert Nlu().find_slot("time", text) is None
+
+
+@pytest.mark.parametrize("text", ["7:30", "07.30", "23:59", "через пять минут", "через час"])
+def test_supported_time_formats(text: str) -> None:
+    assert Nlu().find_slot("time", text) == text
+
+
+def test_empty_training_data_is_reported(db: Session) -> None:
+    with pytest.raises(ServiceUnavailableError, match="нет фраз"):
+        Nlu().train(db)
+
+
+def test_training_requires_more_than_one_class(loaded_db: Session) -> None:
+    for intent in loaded_db.scalars(select(Intent)):
+        intent.is_active = intent.code == "alarm_set"
+    loaded_db.commit()
+    with pytest.raises(ServiceUnavailableError, match="2 активных"):
+        train_nlu(loaded_db)
+
+
+def test_failed_retraining_keeps_previous_model(loaded_db: Session) -> None:
+    previous = get_nlu(loaded_db)
+    previous_prediction = previous.predict("поставь будильник")
+    for utterance in loaded_db.scalars(select(Utterance).where(Utterance.partition == "train")):
+        loaded_db.delete(utterance)
+    loaded_db.commit()
+    with pytest.raises(ServiceUnavailableError):
+        train_nlu(loaded_db)
+    assert get_nlu(loaded_db) is previous
+    assert previous.predict("поставь будильник") == previous_prediction

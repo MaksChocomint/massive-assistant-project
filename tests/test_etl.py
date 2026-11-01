@@ -88,3 +88,43 @@ def test_import_creates_required_slots(db: Session) -> None:
     codes = [db.get(SlotType, link.slot_type_id).code for link in links]  # type: ignore[union-attr]
     assert codes == ["transport_type", "place_name"]
     assert links[0].question.startswith("Какой билет")
+
+
+@pytest.mark.parametrize(
+    "annotation",
+    ["[time семь]", "[time : ]", "[[time : семь]]", "][", "[time : семь] [broken]"],
+)
+def test_balanced_but_invalid_annotations_are_rejected(annotation: str) -> None:
+    assert parse_slot_types(annotation) is None
+
+
+def test_missing_annotation_is_rejected() -> None:
+    report = Report()
+    incomplete = row()
+    del incomplete["annot_utt"]
+    assert clean([incomplete], report) == []
+    assert report.rejected == {"пустое поле": 1}
+
+
+def test_annotation_must_describe_the_same_text() -> None:
+    report = Report()
+    assert clean([row(annot_utt="другой текст")], report) == []
+    assert report.rejected == {"разметка не соответствует фразе": 1}
+
+
+def test_invalid_identifier_is_rejected() -> None:
+    report = Report()
+    assert clean([row(id="x" * 21)], report) == []
+    assert report.rejected == {"некорректный идентификатор": 1}
+
+
+def test_csv_with_utf8_bom_is_supported(tmp_path: Path) -> None:
+    import csv
+
+    path = tmp_path / "bom.csv"
+    with path.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(row()))
+        writer.writeheader()
+        writer.writerow(row())
+    report = Report()
+    assert len(clean(extract(path), report)) == 1

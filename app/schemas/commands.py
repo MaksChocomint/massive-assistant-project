@@ -1,14 +1,18 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CommandCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     user_id: int = Field(gt=0, examples=[1])
     text: str = Field(min_length=1, max_length=300, examples=["поставь будильник"])
 
 
 class ClarifyRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     answer: str = Field(min_length=1, max_length=200, examples=["на семь утра"])
 
 
