@@ -13,6 +13,9 @@ COPY migrations ./migrations
 COPY app ./app
 COPY data ./data
 
+ENV SPEECH_MODEL_PATH=/opt/models/vosk-model-small-ru-0.22
+RUN python -m app.speech.prepare
+
 RUN useradd --create-home app
 USER app
 

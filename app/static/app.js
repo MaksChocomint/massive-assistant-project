@@ -1,7 +1,10 @@
 ﻿"use strict";
 // Голосовой клиент микросервиса. Микрофон запускается только действием пользователя.
 const $ = id => document.getElementById(id);
-const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const NativeRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const Recognition = NativeRecognition || (
+  window.LocalSpeechRecognition?.supported() ? window.LocalSpeechRecognition : null
+);
 const canSpeak = typeof window.speechSynthesis?.speak === "function"
   && typeof window.SpeechSynthesisUtterance === "function";
 const ACTIVE_PHASES = new Set(["clarifying","awaiting_confirmation"]);
@@ -49,7 +52,7 @@ function controls() {
   $("voice-button").setAttribute("aria-pressed",String(voiceActive));
   $("voice-button").querySelector("span").textContent = voiceActive ? "Пауза" : "Говорить";
   const pending = current?.phase === "ready";
-  $("voice-button").disabled = !Recognition || (busy && !voiceActive) || pending;
+  $("voice-button").disabled = !Recognition || (busy && !voiceActive) || (pending && !voiceActive);
   $("send-button").disabled = busy || pending;
   $("message").readOnly = busy || pending;
   $("cancel-button").disabled = busy || !current || !ACTIVE_PHASES.has(current.phase);
@@ -102,7 +105,7 @@ function stopRecognition() {
   if(recognition) {
     const previous=recognition;
     recognition=null;
-    previous.onstart=previous.onresult=previous.onerror=previous.onend=null;
+    previous.onstart=previous.onresult=previous.onerror=previous.onend=previous.onaudioend=null;
     try { previous.abort(); } catch {}
   }
   listening=false;
@@ -170,9 +173,9 @@ function recognitionFailure(code) {
   if(code==="aborted")return;
   const errors={
     "not-allowed":"Браузер не разрешил доступ к микрофону. Разрешите его в настройках сайта или введите команду текстом.",
-    "service-not-allowed":"Сервис распознавания речи недоступен в этом браузере. Можно ввести команду текстом.",
+    "service-not-allowed":"Сервис распознавания речи пока недоступен. Попробуйте позже или введите команду текстом.",
     "audio-capture":"Микрофон не найден или занят другой программой. Проверьте его подключение.",
-    "network":"Нет связи с сервисом распознавания речи браузера. Можно ввести команду текстом.",
+    "network":"Нет связи с сервисом распознавания речи. Можно ввести команду текстом.",
     "language-not-supported":"Распознавание русской речи недоступно в этом браузере.",
   };
   if(errors[code]) {
@@ -219,6 +222,9 @@ function startListening() {
     handleText(text);
   };
   instance.onerror=event=>{if(epoch===recognitionEpoch)recognitionFailure(event.error);};
+  instance.onaudioend=()=>{
+    if(epoch===recognitionEpoch)voiceState("Распознаю запись…");
+  };
   instance.onend=()=>{
     if(epoch!==recognitionEpoch)return;
     stopRecognition();
@@ -414,6 +420,11 @@ document.addEventListener("keydown",event=>{
 });
 window.addEventListener("pagehide",()=>{stopPolling();stopRecognition();stopSpeech();});
 async function restore() {
+  if(Recognition && !NativeRecognition) {
+    $("voice-support").classList.add("info");
+    $("voice-support").hidden=false;
+    $("voice-support").textContent="После фразы сделайте паузу — помощник распознает запись и ответит.";
+  }
   if(!Recognition) {
     $("voice-support").hidden=false;
     $("voice-support").textContent="Голосовой ввод в этом браузере недоступен. Можно ввести команду текстом.";

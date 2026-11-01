@@ -7,3 +7,4 @@ pydantic==2.14.1
 pydantic-settings==2.16.0
 python-multipart==0.0.20
 scikit-learn==1.9.1
+vosk==0.3.45

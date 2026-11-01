@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     # Сколько раз можно уточнять одну команду, прежде чем она получит статус failed
     max_clarifications: int = Field(default=3, ge=1, le=20)
     log_level: str = "INFO"
+    speech_model_path: str = "data/models/vosk-model-small-ru-0.22"
 
 
 settings = Settings()
