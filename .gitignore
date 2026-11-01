@@ -21,3 +21,6 @@ build/
 dist/
 *.egg-info/
 data/models/
+# Local course handouts
+/*.docx
+/*.pdf
