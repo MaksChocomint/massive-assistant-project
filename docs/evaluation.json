@@ -1,0 +1,74 @@
+{
+  "model": "TF-IDF (word + char) + calibrated LinearSVC",
+  "random_state": 42,
+  "trained_on": 10907,
+  "intents": 60,
+  "partitions": {
+    "dev": {
+      "utterances": 1916,
+      "accuracy": 0.8299,
+      "macro_f1": 0.7786,
+      "majority_baseline": 0.0678,
+      "top_confusions": [
+        {
+          "expected": "general_quirky",
+          "predicted": "qa_factoid",
+          "count": 11
+        },
+        {
+          "expected": "general_quirky",
+          "predicted": "calendar_query",
+          "count": 9
+        },
+        {
+          "expected": "qa_factoid",
+          "predicted": "general_quirky",
+          "count": 9
+        },
+        {
+          "expected": "general_quirky",
+          "predicted": "weather_query",
+          "count": 6
+        },
+        {
+          "expected": "general_quirky",
+          "predicted": "news_query",
+          "count": 6
+        }
+      ]
+    },
+    "test": {
+      "utterances": 2819,
+      "accuracy": 0.828,
+      "macro_f1": 0.7859,
+      "majority_baseline": 0.0734,
+      "top_confusions": [
+        {
+          "expected": "general_quirky",
+          "predicted": "qa_factoid",
+          "count": 18
+        },
+        {
+          "expected": "calendar_set",
+          "predicted": "calendar_query",
+          "count": 16
+        },
+        {
+          "expected": "calendar_query",
+          "predicted": "calendar_set",
+          "count": 12
+        },
+        {
+          "expected": "qa_factoid",
+          "predicted": "general_quirky",
+          "count": 11
+        },
+        {
+          "expected": "general_quirky",
+          "predicted": "calendar_query",
+          "count": 9
+        }
+      ]
+    }
+  }
+}
