@@ -28,6 +28,7 @@ jobs:
       - name: Тесты с покрытием (не ниже 70 %)
         run: pytest --cov-report=xml
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: coverage
           path: coverage.xml
@@ -65,3 +66,30 @@ jobs:
           python -m app.etl.import_massive --source tests/fixtures/sample.csv
       - name: Откат миграций
         run: alembic downgrade base
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [lint, test, migrations]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Сборка и запуск с автоматическим наполнением БД
+        run: docker compose up -d --build --wait --wait-timeout 180
+      - name: Проверка API и интерфейса
+        run: |
+          curl --fail http://localhost:8000/api/health
+          curl --fail http://localhost:8000/
+          curl --fail http://localhost:8000/presentation
+          python - <<'PY'
+          import json
+          from urllib.request import urlopen
+          with urlopen('http://localhost:8000/api/intents?limit=1') as response:
+              assert json.load(response)['total'] == 60
+          with urlopen('http://localhost:8000/api/users') as response:
+              assert len(json.load(response)) == 3
+          PY
+      - name: Логи контейнеров
+        if: always()
+        run: docker compose logs
+      - name: Остановка стенда
+        if: always()
+        run: docker compose down

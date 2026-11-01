@@ -19,12 +19,20 @@ services:
     build: .
     environment:
       DATABASE_URL: postgresql+psycopg://app:app@db:5432/assistant
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      MAX_CLARIFICATIONS: ${MAX_CLARIFICATIONS:-3}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    command: sh -c "python -m app.bootstrap && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
 
 volumes:
   pgdata:
