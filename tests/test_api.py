@@ -1,5 +1,6 @@
 """Интеграционные тесты REST API через TestClient."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -181,3 +182,38 @@ def test_health_and_ui(client: TestClient) -> None:
     assert client.get("/api/health").json() == {"status": "ok"}
     assert client.get("/").status_code == 200
     assert client.get("/docs").status_code == 200
+    assert client.get("/presentation").status_code == 200
+
+
+@pytest.mark.parametrize(
+    ("path", "body"),
+    [
+        ("/api/commands", {"user_id": 1, "text": "   "}),
+        ("/api/users", {"username": "new_user", "name": " \t "}),
+    ],
+)
+def test_whitespace_is_not_valid_input(client: TestClient, path: str, body: dict) -> None:
+    response = client.post(path, json=body)
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+
+
+@pytest.mark.parametrize("field", ["name", "scenario_id", "is_active"])
+def test_patch_cannot_clear_required_field(client: TestClient, field: str) -> None:
+    iid = intent_id(client, "alarm_set")
+    response = client.patch(f"/api/intents/{iid}", json={field: None})
+    assert response.status_code == 422
+    assert client.get(f"/api/intents/{iid}").json()[field] is not None
+
+
+def test_invalid_sort_is_reported(client: TestClient) -> None:
+    response = client.get("/api/intents", params={"sort": "unknown"})
+    assert response.status_code == 422
+
+
+def test_unknown_words_do_not_create_a_random_command(client: TestClient) -> None:
+    before = client.get("/api/commands").json()["total"]
+    response = client.post("/api/commands", json={"user_id": first_user(client), "text": "🤷"})
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "business_rule"
+    assert client.get("/api/commands").json()["total"] == before

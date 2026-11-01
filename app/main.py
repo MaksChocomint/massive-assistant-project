@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import analytics, catalog, commands
+from app.api import analytics, catalog, commands, dialogue
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 
@@ -18,14 +18,15 @@ logging.basicConfig(
 STATIC = Path(__file__).parent / "static"
 
 app = FastAPI(
-    title="Голосовой помощник: команды и справочник",
-    description="Информационная система на датасете MASSIVE: справочник намерений, "
-    "обработка команд пользователей с уточняющими вопросами, ETL и аналитика.",
+    title="MASSIVE: ассистивный микросервис уточнения команд",
+    description="Голосовой диалог для невизуального взаимодействия: уточнение параметров, "
+    "проговаривание, подтверждение пользователя и квитанция внешнего исполнителя. "
+    "Распознавание намерений основано на MASSIVE; устройства напрямую не управляются.",
     version="1.0.0",
 )
 register_error_handlers(app)
 
-for router in (catalog.router, commands.router, analytics.router):
+for router in (dialogue.router, catalog.router, commands.router, analytics.router):
     app.include_router(router, prefix="/api")
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -35,6 +36,12 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 def index() -> FileResponse:
     """Веб-интерфейс (HTML + JS), работает через этот же API."""
     return FileResponse(STATIC / "index.html")
+
+
+@app.get("/presentation", include_in_schema=False)
+def presentation() -> FileResponse:
+    """Семь слайдов для защиты; работают локально без внешних ресурсов."""
+    return FileResponse(STATIC / "presentation.html")
 
 
 @app.get("/api/health", tags=["Служебное"])

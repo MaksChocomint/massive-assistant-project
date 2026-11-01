@@ -1,0 +1,419 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="850" viewBox="0 0 1680 850" role="img" aria-labelledby="erd-title erd-desc">
+<title id="erd-title">ER-диаграмма MASSIVE: все 9 сущностей и 45 атрибутов</title>
+<desc id="erd-desc">Схема PostgreSQL из SQLAlchemy-моделей. Линии связывают родительские сущности с внешними ключами. Две связи многие ко многим реализованы через intent_slots и command_slots. У команды может быть один голосовой диалог. Служебная таблица alembic_version не является сущностью предметной области.</desc>
+<defs>
+<marker id="one" viewBox="0 0 18 18" markerWidth="18" markerHeight="18"
+refX="0" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+<path d="M11 2 V16" fill="none" stroke="#60718f" stroke-width="2"/></marker>
+<marker id="many" viewBox="0 0 28 18" markerWidth="28" markerHeight="18"
+refX="28" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+<path d="M16 9 L28 2 M16 9 L28 16" fill="none" stroke="#60718f" stroke-width="2"/>
+<circle cx="8" cy="9" r="4" fill="white" stroke="#60718f" stroke-width="2"/></marker>
+<marker id="optional-one" viewBox="0 0 28 18" markerWidth="28" markerHeight="18"
+refX="28" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+<path d="M24 2 V16" fill="none" stroke="#60718f" stroke-width="2"/>
+<circle cx="8" cy="9" r="4" fill="white" stroke="#60718f" stroke-width="2"/></marker>
+</defs>
+<style>
+text {font-family:Arial,Helvetica,sans-serif;}
+.table-name {font-size:24px;font-weight:700;}
+.table-label {font-size:16px;fill:#526078;}
+.column {font-size:21px;}
+.type {font-size:16px;fill:#526078;}
+.key {font-size:12px;font-weight:700;}
+.constraint {font-size:16px;fill:#526078;}
+.multiplicity {font-size:15px;font-weight:700;fill:#43536e;}
+.legend {font-size:17px;fill:#43536e;}
+</style>
+<rect width="1680" height="850" fill="white"/>
+<path class="relationship" data-fk="intents.scenario_id" d="M244 159 V270" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>scenarios.id → intents.scenario_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="intent_slots.intent_id" d="M464 334 H510 V84 H620" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>intents.id → intent_slots.intent_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="intent_slots.slot_type_id" d="M1216 84 H1145 V109 H1060" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>slot_types.id → intent_slots.slot_type_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="utterances.intent_id" d="M244 459 V570" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>intents.id → utterances.intent_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="commands.intent_id" d="M464 334 H555 V619 H620" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>intents.id → commands.intent_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="commands.user_id" d="M840 424 V480" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>users.id → commands.user_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="command_slots.command_id" d="M1060 544 H1110 V359 H1216" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>commands.id → command_slots.command_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="command_slots.slot_type_id" d="M1436 159 V270" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#many)"><title>slot_types.id → command_slots.slot_type_id (1 : 0..N)</title></path>
+<path class="relationship" data-fk="dialogue_sessions.command_id" d="M1060 544 H1160 V634 H1216" fill="none" stroke="#60718f" stroke-width="2" marker-start="url(#one)" marker-end="url(#optional-one)"><title>commands.id → dialogue_sessions.command_id (1 : 0..1)</title></path>
+<g class="entity" data-table="scenarios" aria-label="scenarios: Сценарии">
+<rect x="24" y="20" width="440" height="139" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M34 20 H454 Q464 20 464 30 V72 H24 V30 Q24 20 34 20" fill="#eef2ff"/>
+<text x="40" y="44" class="table-name" fill="#284dd4">scenarios</text>
+<text x="40" y="63" class="table-label">Сценарии</text>
+<g class="attribute" data-column="scenarios.id">
+<title>id: INTEGER; PK</title>
+<path d="M36 72 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="90" class="key" fill="#284dd4">PK</text>
+<text x="103" y="91" class="column" fill="#1c2b48">id</text>
+<text x="449" y="90" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="scenarios.code">
+<title>code: VARCHAR(50); UQ</title>
+<path d="M36 97 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="115" class="key" fill="#284dd4">UQ</text>
+<text x="103" y="116" class="column" fill="#1c2b48">code</text>
+<text x="449" y="115" class="type" text-anchor="end">VARCHAR(50)</text>
+</g>
+<g class="attribute" data-column="scenarios.name">
+<title>name: VARCHAR(100); </title>
+<path d="M36 122 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="140" class="key" fill="#284dd4"></text>
+<text x="103" y="141" class="column" fill="#1c2b48">name</text>
+<text x="449" y="140" class="type" text-anchor="end">VARCHAR(100)</text>
+</g>
+</g>
+<g class="entity" data-table="intents" aria-label="intents: Намерения">
+<rect x="24" y="270" width="440" height="189" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M34 270 H454 Q464 270 464 280 V322 H24 V280 Q24 270 34 270" fill="#eef2ff"/>
+<text x="40" y="294" class="table-name" fill="#284dd4">intents</text>
+<text x="40" y="313" class="table-label">Намерения</text>
+<g class="attribute" data-column="intents.id">
+<title>id: INTEGER; PK</title>
+<path d="M36 322 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="340" class="key" fill="#284dd4">PK</text>
+<text x="103" y="341" class="column" fill="#1c2b48">id</text>
+<text x="449" y="340" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="intents.code">
+<title>code: VARCHAR(50); UQ</title>
+<path d="M36 347 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="365" class="key" fill="#284dd4">UQ</text>
+<text x="103" y="366" class="column" fill="#1c2b48">code</text>
+<text x="449" y="365" class="type" text-anchor="end">VARCHAR(50)</text>
+</g>
+<g class="attribute" data-column="intents.name">
+<title>name: VARCHAR(100); </title>
+<path d="M36 372 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="390" class="key" fill="#284dd4"></text>
+<text x="103" y="391" class="column" fill="#1c2b48">name</text>
+<text x="449" y="390" class="type" text-anchor="end">VARCHAR(100)</text>
+</g>
+<g class="attribute" data-column="intents.scenario_id">
+<title>scenario_id: INTEGER; FK</title>
+<path d="M36 397 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="415" class="key" fill="#284dd4">FK</text>
+<text x="103" y="416" class="column" fill="#284dd4">scenario_id</text>
+<text x="449" y="415" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="intents.is_active">
+<title>is_active: BOOLEAN; </title>
+<path d="M36 422 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="440" class="key" fill="#284dd4"></text>
+<text x="103" y="441" class="column" fill="#1c2b48">is_active</text>
+<text x="449" y="440" class="type" text-anchor="end">BOOLEAN</text>
+</g>
+</g>
+<g class="entity" data-table="utterances" aria-label="utterances: Фразы MASSIVE">
+<rect x="24" y="570" width="440" height="214" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M34 570 H454 Q464 570 464 580 V622 H24 V580 Q24 570 34 570" fill="#eef2ff"/>
+<text x="40" y="594" class="table-name" fill="#284dd4">utterances</text>
+<text x="40" y="613" class="table-label">Фразы MASSIVE</text>
+<g class="attribute" data-column="utterances.id">
+<title>id: INTEGER; PK</title>
+<path d="M36 622 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="640" class="key" fill="#284dd4">PK</text>
+<text x="103" y="641" class="column" fill="#1c2b48">id</text>
+<text x="449" y="640" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="utterances.external_id">
+<title>external_id: VARCHAR(20); UQ</title>
+<path d="M36 647 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="665" class="key" fill="#284dd4">UQ</text>
+<text x="103" y="666" class="column" fill="#1c2b48">external_id</text>
+<text x="449" y="665" class="type" text-anchor="end">VARCHAR(20)</text>
+</g>
+<g class="attribute" data-column="utterances.text">
+<title>text: TEXT; </title>
+<path d="M36 672 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="690" class="key" fill="#284dd4"></text>
+<text x="103" y="691" class="column" fill="#1c2b48">text</text>
+<text x="449" y="690" class="type" text-anchor="end">TEXT</text>
+</g>
+<g class="attribute" data-column="utterances.annotated">
+<title>annotated: TEXT; </title>
+<path d="M36 697 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="715" class="key" fill="#284dd4"></text>
+<text x="103" y="716" class="column" fill="#1c2b48">annotated</text>
+<text x="449" y="715" class="type" text-anchor="end">TEXT</text>
+</g>
+<g class="attribute" data-column="utterances.partition">
+<title>partition: VARCHAR(10); </title>
+<path d="M36 722 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="740" class="key" fill="#284dd4"></text>
+<text x="103" y="741" class="column" fill="#1c2b48">partition</text>
+<text x="449" y="740" class="type" text-anchor="end">VARCHAR(10)</text>
+</g>
+<g class="attribute" data-column="utterances.intent_id">
+<title>intent_id: INTEGER; FK</title>
+<path d="M36 747 H452" stroke="#edf0f5" stroke-width="1"/>
+<text x="39" y="765" class="key" fill="#284dd4">FK</text>
+<text x="103" y="766" class="column" fill="#284dd4">intent_id</text>
+<text x="449" y="765" class="type" text-anchor="end">INTEGER</text>
+</g>
+</g>
+<g class="entity" data-table="intent_slots" aria-label="intent_slots: Обязательные параметры и вопросы">
+<rect x="620" y="20" width="440" height="213" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M630 20 H1050 Q1060 20 1060 30 V72 H620 V30 Q620 20 630 20" fill="#eef2ff"/>
+<text x="636" y="44" class="table-name" fill="#284dd4">intent_slots</text>
+<text x="636" y="63" class="table-label">Обязательные параметры и вопросы</text>
+<g class="attribute" data-column="intent_slots.intent_id">
+<title>intent_id: INTEGER; PK, FK</title>
+<path d="M632 72 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="90" class="key" fill="#284dd4">PK FK</text>
+<text x="699" y="91" class="column" fill="#284dd4">intent_id</text>
+<text x="1045" y="90" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="intent_slots.slot_type_id">
+<title>slot_type_id: INTEGER; PK, FK</title>
+<path d="M632 97 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="115" class="key" fill="#284dd4">PK FK</text>
+<text x="699" y="116" class="column" fill="#284dd4">slot_type_id</text>
+<text x="1045" y="115" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="intent_slots.required">
+<title>required: BOOLEAN; </title>
+<path d="M632 122 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="140" class="key" fill="#284dd4"></text>
+<text x="699" y="141" class="column" fill="#1c2b48">required</text>
+<text x="1045" y="140" class="type" text-anchor="end">BOOLEAN</text>
+</g>
+<g class="attribute" data-column="intent_slots.position">
+<title>position: INTEGER; </title>
+<path d="M632 147 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="165" class="key" fill="#284dd4"></text>
+<text x="699" y="166" class="column" fill="#1c2b48">position</text>
+<text x="1045" y="165" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="intent_slots.question">
+<title>question: VARCHAR(200); </title>
+<path d="M632 172 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="190" class="key" fill="#284dd4"></text>
+<text x="699" y="191" class="column" fill="#1c2b48">question</text>
+<text x="1045" y="190" class="type" text-anchor="end">VARCHAR(200)</text>
+</g>
+<text x="636" y="219" class="constraint">PK (intent_id, slot_type_id)</text>
+</g>
+<g class="entity" data-table="users" aria-label="users: Профили команд">
+<rect x="620" y="260" width="440" height="164" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M630 260 H1050 Q1060 260 1060 270 V312 H620 V270 Q620 260 630 260" fill="#edf6f3"/>
+<text x="636" y="284" class="table-name" fill="#176b65">users</text>
+<text x="636" y="303" class="table-label">Профили команд</text>
+<g class="attribute" data-column="users.id">
+<title>id: INTEGER; PK</title>
+<path d="M632 312 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="330" class="key" fill="#176b65">PK</text>
+<text x="699" y="331" class="column" fill="#1c2b48">id</text>
+<text x="1045" y="330" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="users.username">
+<title>username: VARCHAR(50); UQ</title>
+<path d="M632 337 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="355" class="key" fill="#176b65">UQ</text>
+<text x="699" y="356" class="column" fill="#1c2b48">username</text>
+<text x="1045" y="355" class="type" text-anchor="end">VARCHAR(50)</text>
+</g>
+<g class="attribute" data-column="users.name">
+<title>name: VARCHAR(100); </title>
+<path d="M632 362 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="380" class="key" fill="#176b65"></text>
+<text x="699" y="381" class="column" fill="#1c2b48">name</text>
+<text x="1045" y="380" class="type" text-anchor="end">VARCHAR(100)</text>
+</g>
+<g class="attribute" data-column="users.created_at">
+<title>created_at: TIMESTAMPTZ; </title>
+<path d="M632 387 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="405" class="key" fill="#176b65"></text>
+<text x="699" y="406" class="column" fill="#1c2b48">created_at</text>
+<text x="1045" y="405" class="type" text-anchor="end">TIMESTAMPTZ</text>
+</g>
+</g>
+<g class="entity" data-table="commands" aria-label="commands: Команды и собранные параметры">
+<rect x="620" y="480" width="440" height="289" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M630 480 H1050 Q1060 480 1060 490 V532 H620 V490 Q620 480 630 480" fill="#edf6f3"/>
+<text x="636" y="504" class="table-name" fill="#176b65">commands</text>
+<text x="636" y="523" class="table-label">Команды и собранные параметры</text>
+<g class="attribute" data-column="commands.id">
+<title>id: INTEGER; PK</title>
+<path d="M632 532 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="550" class="key" fill="#176b65">PK</text>
+<text x="699" y="551" class="column" fill="#1c2b48">id</text>
+<text x="1045" y="550" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="commands.user_id">
+<title>user_id: INTEGER; FK</title>
+<path d="M632 557 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="575" class="key" fill="#176b65">FK</text>
+<text x="699" y="576" class="column" fill="#176b65">user_id</text>
+<text x="1045" y="575" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="commands.text">
+<title>text: TEXT; </title>
+<path d="M632 582 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="600" class="key" fill="#176b65"></text>
+<text x="699" y="601" class="column" fill="#1c2b48">text</text>
+<text x="1045" y="600" class="type" text-anchor="end">TEXT</text>
+</g>
+<g class="attribute" data-column="commands.intent_id">
+<title>intent_id: INTEGER; FK</title>
+<path d="M632 607 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="625" class="key" fill="#176b65">FK</text>
+<text x="699" y="626" class="column" fill="#176b65">intent_id</text>
+<text x="1045" y="625" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="commands.confidence">
+<title>confidence: DOUBLE PRECISION; </title>
+<path d="M632 632 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="650" class="key" fill="#176b65"></text>
+<text x="699" y="651" class="column" fill="#1c2b48">confidence</text>
+<text x="1045" y="650" class="type" text-anchor="end">DOUBLE PRECISION</text>
+</g>
+<g class="attribute" data-column="commands.status">
+<title>status: VARCHAR(30); </title>
+<path d="M632 657 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="675" class="key" fill="#176b65"></text>
+<text x="699" y="676" class="column" fill="#1c2b48">status</text>
+<text x="1045" y="675" class="type" text-anchor="end">VARCHAR(30)</text>
+</g>
+<g class="attribute" data-column="commands.clarifications">
+<title>clarifications: INTEGER; </title>
+<path d="M632 682 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="700" class="key" fill="#176b65"></text>
+<text x="699" y="701" class="column" fill="#1c2b48">clarifications</text>
+<text x="1045" y="700" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="commands.created_at">
+<title>created_at: TIMESTAMPTZ; </title>
+<path d="M632 707 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="725" class="key" fill="#176b65"></text>
+<text x="699" y="726" class="column" fill="#1c2b48">created_at</text>
+<text x="1045" y="725" class="type" text-anchor="end">TIMESTAMPTZ</text>
+</g>
+<g class="attribute" data-column="commands.updated_at">
+<title>updated_at: TIMESTAMPTZ; </title>
+<path d="M632 732 H1048" stroke="#edf0f5" stroke-width="1"/>
+<text x="635" y="750" class="key" fill="#176b65"></text>
+<text x="699" y="751" class="column" fill="#1c2b48">updated_at</text>
+<text x="1045" y="750" class="type" text-anchor="end">TIMESTAMPTZ</text>
+</g>
+</g>
+<g class="entity" data-table="slot_types" aria-label="slot_types: Типы параметров">
+<rect x="1216" y="20" width="440" height="139" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M1226 20 H1646 Q1656 20 1656 30 V72 H1216 V30 Q1216 20 1226 20" fill="#eef2ff"/>
+<text x="1232" y="44" class="table-name" fill="#284dd4">slot_types</text>
+<text x="1232" y="63" class="table-label">Типы параметров</text>
+<g class="attribute" data-column="slot_types.id">
+<title>id: INTEGER; PK</title>
+<path d="M1228 72 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="90" class="key" fill="#284dd4">PK</text>
+<text x="1295" y="91" class="column" fill="#1c2b48">id</text>
+<text x="1641" y="90" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="slot_types.code">
+<title>code: VARCHAR(50); UQ</title>
+<path d="M1228 97 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="115" class="key" fill="#284dd4">UQ</text>
+<text x="1295" y="116" class="column" fill="#1c2b48">code</text>
+<text x="1641" y="115" class="type" text-anchor="end">VARCHAR(50)</text>
+</g>
+<g class="attribute" data-column="slot_types.name">
+<title>name: VARCHAR(100); </title>
+<path d="M1228 122 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="140" class="key" fill="#284dd4"></text>
+<text x="1295" y="141" class="column" fill="#1c2b48">name</text>
+<text x="1641" y="140" class="type" text-anchor="end">VARCHAR(100)</text>
+</g>
+</g>
+<g class="entity" data-table="command_slots" aria-label="command_slots: Значения параметров команды">
+<rect x="1216" y="270" width="440" height="188" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M1226 270 H1646 Q1656 270 1656 280 V322 H1216 V280 Q1216 270 1226 270" fill="#edf6f3"/>
+<text x="1232" y="294" class="table-name" fill="#176b65">command_slots</text>
+<text x="1232" y="313" class="table-label">Значения параметров команды</text>
+<g class="attribute" data-column="command_slots.id">
+<title>id: INTEGER; PK</title>
+<path d="M1228 322 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="340" class="key" fill="#176b65">PK</text>
+<text x="1295" y="341" class="column" fill="#1c2b48">id</text>
+<text x="1641" y="340" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="command_slots.command_id">
+<title>command_id: INTEGER; FK</title>
+<path d="M1228 347 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="365" class="key" fill="#176b65">FK</text>
+<text x="1295" y="366" class="column" fill="#176b65">command_id</text>
+<text x="1641" y="365" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="command_slots.slot_type_id">
+<title>slot_type_id: INTEGER; FK</title>
+<path d="M1228 372 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="390" class="key" fill="#176b65">FK</text>
+<text x="1295" y="391" class="column" fill="#176b65">slot_type_id</text>
+<text x="1641" y="390" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="command_slots.value">
+<title>value: VARCHAR(200); </title>
+<path d="M1228 397 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="415" class="key" fill="#176b65"></text>
+<text x="1295" y="416" class="column" fill="#1c2b48">value</text>
+<text x="1641" y="415" class="type" text-anchor="end">VARCHAR(200)</text>
+</g>
+<text x="1232" y="444" class="constraint">UQ (command_id, slot_type_id)</text>
+</g>
+<g class="entity" data-table="dialogue_sessions" aria-label="dialogue_sessions: Согласование и результат исполнения">
+<rect x="1216" y="570" width="440" height="214" rx="10" fill="white" stroke="#cbd4e3" stroke-width="1.5"/>
+<path d="M1226 570 H1646 Q1656 570 1656 580 V622 H1216 V580 Q1216 570 1226 570" fill="#edf6f3"/>
+<text x="1232" y="594" class="table-name" fill="#176b65">dialogue_sessions</text>
+<text x="1232" y="613" class="table-label">Согласование и результат исполнения</text>
+<g class="attribute" data-column="dialogue_sessions.command_id">
+<title>command_id: INTEGER; PK, FK</title>
+<path d="M1228 622 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="640" class="key" fill="#176b65">PK FK</text>
+<text x="1295" y="641" class="column" fill="#176b65">command_id</text>
+<text x="1641" y="640" class="type" text-anchor="end">INTEGER</text>
+</g>
+<g class="attribute" data-column="dialogue_sessions.phase">
+<title>phase: VARCHAR(30); </title>
+<path d="M1228 647 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="665" class="key" fill="#176b65"></text>
+<text x="1295" y="666" class="column" fill="#1c2b48">phase</text>
+<text x="1641" y="665" class="type" text-anchor="end">VARCHAR(30)</text>
+</g>
+<g class="attribute" data-column="dialogue_sessions.operation_id">
+<title>operation_id: VARCHAR(100) ?; </title>
+<path d="M1228 672 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="690" class="key" fill="#176b65"></text>
+<text x="1295" y="691" class="column" fill="#1c2b48">operation_id</text>
+<text x="1641" y="690" class="type" text-anchor="end">VARCHAR(100) ?</text>
+</g>
+<g class="attribute" data-column="dialogue_sessions.execution_success">
+<title>execution_success: BOOLEAN ?; </title>
+<path d="M1228 697 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="715" class="key" fill="#176b65"></text>
+<text x="1295" y="716" class="column" fill="#1c2b48">execution_success</text>
+<text x="1641" y="715" class="type" text-anchor="end">BOOLEAN ?</text>
+</g>
+<g class="attribute" data-column="dialogue_sessions.execution_message">
+<title>execution_message: VARCHAR(500) ?; </title>
+<path d="M1228 722 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="740" class="key" fill="#176b65"></text>
+<text x="1295" y="741" class="column" fill="#1c2b48">execution_message</text>
+<text x="1641" y="740" class="type" text-anchor="end">VARCHAR(500) ?</text>
+</g>
+<g class="attribute" data-column="dialogue_sessions.updated_at">
+<title>updated_at: TIMESTAMPTZ; </title>
+<path d="M1228 747 H1644" stroke="#edf0f5" stroke-width="1"/>
+<text x="1231" y="765" class="key" fill="#176b65"></text>
+<text x="1295" y="766" class="column" fill="#1c2b48">updated_at</text>
+<text x="1641" y="765" class="type" text-anchor="end">TIMESTAMPTZ</text>
+</g>
+</g>
+<g><rect x="198" y="201" width="92" height="26" rx="8" fill="white"/><text x="244" y="219" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="464" y="201" width="92" height="26" rx="8" fill="white"/><text x="510" y="219" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="1099" y="51" width="92" height="26" rx="8" fill="white"/><text x="1145" y="69" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="198" y="501" width="92" height="26" rx="8" fill="white"/><text x="244" y="519" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="509" y="501" width="92" height="26" rx="8" fill="white"/><text x="555" y="519" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="794" y="438" width="92" height="26" rx="8" fill="white"/><text x="840" y="456" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="1064" y="466" width="92" height="26" rx="8" fill="white"/><text x="1110" y="484" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="1390" y="201" width="92" height="26" rx="8" fill="white"/><text x="1436" y="219" text-anchor="middle" class="multiplicity">1 : 0..N</text></g>
+<g><rect x="1114" y="571" width="92" height="26" rx="8" fill="white"/><text x="1160" y="589" text-anchor="middle" class="multiplicity">1 : 0..1</text></g>
+<text x="24" y="831" class="legend">PK — первичный ключ · FK — внешний ключ · UQ — уникальность · ? — допускается NULL · M:N — через intent_slots и command_slots</text>
+</svg>
