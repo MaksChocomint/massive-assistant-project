@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import analytics, catalog, commands, dialogue
+from app.api import analytics, catalog, commands, dialogue, speech
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 
@@ -26,7 +26,7 @@ app = FastAPI(
 )
 register_error_handlers(app)
 
-for router in (dialogue.router, catalog.router, commands.router, analytics.router):
+for router in (dialogue.router, speech.router, catalog.router, commands.router, analytics.router):
     app.include_router(router, prefix="/api")
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
