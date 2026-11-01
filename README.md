@@ -284,10 +284,15 @@ data/            CSV датасета
 - CI (GitHub Actions): ruff, pytest с покрытием ≥ 70 %, миграции вверх/вниз и ETL на PostgreSQL;
 - слияние только после Approve и зелёного CI.
 
-Это требуемый процесс сдачи. Настроенный workflow в файлах не подтверждает запуск
-CI на GitHub или наличие peer review. В текущем локальном клоне `origin` не задан;
-перед сдачей нужно связать его с репозиторием, настроить защиту `main` и приложить
-реальные ссылки на PR и ревью одногруппников. Подробности — в
+Публичный репозиторий: [MaksChocomint/massive-assistant-project](https://github.com/MaksChocomint/massive-assistant-project).
+Проверки: [GitHub Actions](https://github.com/MaksChocomint/massive-assistant-project/actions).
+Изменения для ревью: [Pull Requests](https://github.com/MaksChocomint/massive-assistant-project/pulls).
+Пошаговая работа с ветками и PR описана в [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Первичная публикация сохраняет историю разработки и текущий рабочий проект в main.
+Дальнейшие изменения оформляются через PR. Сам факт настройки GitHub не заменяет
+требуемое методичкой ревью: до сдачи нужны минимум 3 PR, ревью минимум двух своих
+и двух чужих PR с содержательными замечаниями. Подробности — в
 [сценарии защиты](docs/defense.md).
 
 Результаты фактических локальных проверок: [docs/verification.md](docs/verification.md).
