@@ -72,3 +72,17 @@ SVG: app/static/assets/erd.svg; PNG 3360×1700: output/diagrams/massive-erd.png.
 защиту main или peer review; для этого нужны реальные ссылки удалённого репозитория.
 pytest сообщает предупреждение Starlette о будущем переходе TestClient с httpx
 на httpx2; тесты проходят.
+
+## Публикация GitHub после локальных проверок
+
+Репозиторий: https://github.com/MaksChocomint/massive-assistant-project .
+Первая опубликованная main (4c33ac1) успешно проверена GitHub Actions:
+https://github.com/MaksChocomint/massive-assistant-project/actions/runs/41334447675 .
+Все четыре задачи lint, test, migrations и docker завершились success.
+Отдельное повторное клонирование репозитория дало чистую рабочую копию без .env.
+
+Защита main включает одно обязательное одобрение PR другим участником, успешные
+lint/test/migrations/frontend/docker и разрешённые обсуждения. Администратор также
+подчиняется защите. Проверка JavaScript и инструкция работы предложены в PR:
+https://github.com/MaksChocomint/massive-assistant-project/pull/1 .
+Это подтверждение настройки GitHub; студенческое взаимное code review ещё предстоит.
