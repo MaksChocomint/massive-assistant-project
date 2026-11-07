@@ -10,7 +10,6 @@ export function AssistantPage() {
         <a href="/" className="wordmark">
           MASSIVE<span>.</span> Диалог
         </a>
-        <a href="/presentation">О проекте</a>
       </header>
       <main id="main">
         <h1>Уточнение голосовых команд</h1>
