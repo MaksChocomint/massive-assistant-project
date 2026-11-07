@@ -57,3 +57,10 @@ WAV-примеры tests/fixtures/audio созданы локально голо
 Проверка API вручную (в PowerShell используйте curl.exe вместо curl):
 
     curl -F "audio=@tests/fixtures/audio/alarm.wav" http://localhost:8010/api/speech/transcribe
+
+## React-модули
+
+UI расположен в frontend/src/features/voice/ui, ASR/TTS — в features/voice/model/VoiceSession.js,
+запись WAV — в features/voice/lib. Widget assistant связывает эти модули с API диалога.
+После отменённой или завершённой команды «Говорить» сбрасывает старую сессию и начинает новую запись.
+Формы «семь часов десять минут» и «7 часов 10 минут» сохраняются целиком; часы и минуты проверяются по диапазону.

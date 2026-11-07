@@ -24,3 +24,5 @@ data/models/
 # Local course handouts
 /*.docx
 /*.pdf
+node_modules/
+app/static/ui/
