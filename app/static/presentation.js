@@ -24,7 +24,8 @@ function show(index) {
     if (i === current) button.setAttribute("aria-current", "step");
     else button.removeAttribute("aria-current");
   });
-  document.getElementById("count").textContent = String(current + 1).padStart(2, "0") + " / 07";
+  document.getElementById("count").textContent =
+    String(current + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
   document.getElementById("prev").disabled = current === 0;
   document.getElementById("next").disabled = current === slides.length - 1;
   history.replaceState(null, "", "#" + (current + 1));

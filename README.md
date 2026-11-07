@@ -49,7 +49,7 @@ PowerShell: вместо `cp` можно использовать `Copy-Item .en
 
 - веб-интерфейс: <http://localhost:8000/>
 - Swagger: <http://localhost:8000/docs>
-- презентация из 7 слайдов: <http://localhost:8000/presentation> (стрелки, печать в PDF).
+- презентация из 9 слайдов: <http://localhost:8000/presentation> (стрелки, печать в PDF).
 
 Если порты заняты, измените `APP_PORT` и `DB_PORT` в `.env`, например на `8010` и `5435`.
 Тогда интерфейс открывается на `http://localhost:8010`. Для локального Python также
