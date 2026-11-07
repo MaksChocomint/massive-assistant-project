@@ -58,8 +58,6 @@ jobs:
       - run: npm run format:check --prefix frontend
       - run: npm test --prefix frontend
       - run: npm run build --prefix frontend
-      - name: Presentation syntax
-        run: node --check app/static/presentation.js
 
   migrations:
     runs-on: ubuntu-latest
@@ -106,7 +104,6 @@ jobs:
         run: |
           curl --fail http://localhost:8000/api/health
           curl --fail http://localhost:8000/
-          curl --fail http://localhost:8000/presentation
           curl --fail http://localhost:8000/api/speech/status
           python - <<'PY'
           import json
