@@ -4,6 +4,10 @@ import { AssistantController } from "./assistant-controller.js";
 export function useAssistant() {
   const [controller] = useState(() => new AssistantController());
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
+  const execution = useSyncExternalStore(
+    controller.executor.subscribe,
+    controller.executor.getSnapshot,
+  );
   useEffect(() => {
     const disconnect = controller.connect();
     const keydown = (event) => {
@@ -22,6 +26,7 @@ export function useAssistant() {
     const pagehide = () => {
       controller.stopPolling();
       controller.pauseVoice();
+      controller.executor.disconnect();
     };
     window.addEventListener("keydown", keydown);
     window.addEventListener("pagehide", pagehide);
@@ -31,5 +36,5 @@ export function useAssistant() {
       disconnect();
     };
   }, [controller]);
-  return { state, controller };
+  return { state, execution, controller };
 }
