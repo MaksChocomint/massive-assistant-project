@@ -183,6 +183,10 @@ test("Исполнитель ждёт согласия, затем отправ�
     assert.equal(c.getSnapshot().current.execution_confirmed, true);
     assert.match(c.getSnapshot().current.execution_message, /Свет выключен/);
     assert.equal(c.getSnapshot().current.phase, "executed");
+    const completedMessage = c.getSnapshot().lastMessage;
+    c.alarmFired();
+    assert.equal(c.getSnapshot().lastMessage, completedMessage);
+    assert.match(c.getSnapshot().screenreaderMessage, /Будильник. Время вышло/);
   } finally {
     disconnect();
   }

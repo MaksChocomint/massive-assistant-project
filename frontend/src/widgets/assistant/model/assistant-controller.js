@@ -190,7 +190,7 @@ export class AssistantController {
     this.stopRecognition();
     this.stopSpeech();
     const message = "Будильник. Время вышло. Нажмите «Остановить сигнал».";
-    this.patch({ voiceActive: false, speaking: false, paused: false, lastMessage: message });
+    this.patch({ voiceActive: false, speaking: false, paused: false });
     this.speak(message);
   }
   async performLocal(command) {
