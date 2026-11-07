@@ -5,9 +5,9 @@ export function TextEntry({ state: s, onInput, onSubmit, onOpen }) {
   const pending = s.current?.phase === "ready";
   const placeholder = answering
     ? s.current.phase === "awaiting_confirmation"
-      ? "Да или нет"
-      : "Ответ на вопрос помощника"
-    : "Например: поставь будильник";
+      ? "Подтверждение"
+      : "Ответ"
+    : "Команда";
   return (
     <details
       id="text-entry"

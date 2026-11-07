@@ -96,7 +96,7 @@ def clarify_command(db: Session, command_id: int, answer: str) -> Command:
             db.commit()
             if command.status == "failed":
                 raise ConflictError("Слишком много неудачных уточнений, команда отклонена")
-            raise BusinessError(f"Ответ «{answer}» не похож на {EXPECTED[code]}")
+            raise BusinessError(f"Не удалось определить {EXPECTED[code]}.")
         value = formatted
 
     command.slots.append(CommandSlot(slot_type_id=slot.slot_type_id, value=value))

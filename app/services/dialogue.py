@@ -50,20 +50,18 @@ def describe(db: Session, session: DialogueSession) -> DialogueRead:
         question = commands.next_question(db, command)
         spoken = question or "Уточните команду."
     elif session.phase == "awaiting_confirmation":
-        question = "Всё верно? Скажите «да» или «нет»."
-        spoken = "Я понял: " + summary + " " + question
+        question = "Подтверждаете?"
+        spoken = summary + " " + question
     elif session.phase == "ready":
-        spoken = "Вы подтвердили команду. " + summary
+        spoken = "Ожидаю выполнения."
     elif session.phase == "executed":
-        spoken = "Исполнитель подтвердил выполнение: " + (session.execution_message or summary)
+        spoken = session.execution_message or "Выполнено."
     elif session.phase == "execution_failed":
-        spoken = "Исполнитель сообщил об ошибке: " + (
-            session.execution_message or "действие не выполнено"
-        )
+        spoken = session.execution_message or "Не выполнено."
     elif session.phase == "cancelled":
-        spoken = "Команда отменена. Можно начать новый диалог."
+        spoken = "Отменено."
     else:
-        spoken = "Не удалось уточнить команду за отведённое число попыток. Начните новый диалог."
+        spoken = "Не удалось уточнить команду."
     return DialogueRead(
         id=command.id,
         text=command.text,
@@ -112,7 +110,7 @@ def answer(db: Session, session_id: int, text: str) -> DialogueRead:
         elif clean in NO:
             session.phase = "cancelled"
         else:
-            raise BusinessError("Подтвердите команду словом «да» или отмените словом «нет».")
+            raise BusinessError("Не понял ответ.")
     else:
         raise ConflictError("На этом этапе ответ не ожидается. Начните новый диалог.")
     db.commit()
