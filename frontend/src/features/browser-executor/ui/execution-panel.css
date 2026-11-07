@@ -1,0 +1,79 @@
+﻿.execution-panel {
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface, white);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.execution-panel h2 {
+  font-size: 19px;
+  margin: 0 0 10px;
+}
+.execution-panel h3 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+.execution-panel section {
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+.execution-panel p {
+  margin: 8px 0;
+}
+.execution-panel .button {
+  width: 100%;
+  font-size: 13px;
+}
+.execution-caption,
+.execution-muted {
+  font-size: 12px;
+  color: var(--muted);
+}
+.execution-panel time {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-bottom: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.alarm-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.alarm-list li {
+  padding-top: 12px;
+}
+.alarm-countdown {
+  display: block;
+  font-size: 31px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 9px;
+}
+.alarm-list [data-alarm-state="ringing"] .alarm-countdown {
+  color: var(--accent);
+  font-size: 25px;
+  letter-spacing: 0;
+}
+.alarm-alert:empty {
+  display: none;
+}
+.sound-button {
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  font-size: 12px;
+  padding: 8px 0;
+  text-align: left;
+}
+@media (max-width: 950px) {
+  .execution-panel {
+    position: static;
+  }
+}

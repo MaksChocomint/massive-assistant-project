@@ -5,6 +5,15 @@ import { AssistantController } from "../src/widgets/assistant/model/assistant-co
 
 import { HELLO } from "../src/features/dialogue/headless.js";
 
+function assistant(options) {
+  const executor = {
+    supports: () => false,
+    enableAudio: async () => false,
+    connect: () => () => {},
+    disconnect() {},
+  };
+  return new AssistantController({ executor, ...options });
+}
 function browser() {
   const saved = new Map();
   const calls = { starts: 0, stops: 0, spoken: [] };
@@ -62,7 +71,7 @@ test("Говорить после любого завершённого диал
   for (const phase of ["cancelled", "failed", "executed", "execution_failed"]) {
     const env = browser();
     env.saved.set("massive.dialogue", "42");
-    const controller = new AssistantController({ browser: env, api: async () => dialogue(phase) });
+    const controller = assistant({ browser: env, api: async () => dialogue(phase) });
     const disconnect = controller.connect();
     await delay(0);
     assert.equal(controller.getSnapshot().current.phase, phase);
@@ -83,7 +92,7 @@ test("Говорить после любого завершённого диал
 
 test("Escape во время приветствия не позволяет позднему onend включить микрофон", async () => {
   const env = browser();
-  const controller = new AssistantController({ browser: env });
+  const controller = assistant({ browser: env });
   const disconnect = controller.connect();
   controller.startVoice();
   controller.pauseVoice();
@@ -96,7 +105,7 @@ test("Escape во время приветствия не позволяет по
 test("Старый результат после остановки записи не создаёт команду", async () => {
   const env = browser();
   let requests = 0;
-  const controller = new AssistantController({
+  const controller = assistant({
     browser: env,
     api: async () => {
       requests++;
@@ -117,7 +126,7 @@ test("Старый результат после остановки записи
 test("Скорость проверяется, сохраняется и применяется к речи", () => {
   const env = browser();
   env.saved.set("massive.speechRate", "NaN");
-  const controller = new AssistantController({ browser: env });
+  const controller = assistant({ browser: env });
   const disconnect = controller.connect();
   assert.equal(controller.getSnapshot().speechRate, 1);
   controller.setSpeechRate("1.4");
@@ -136,7 +145,7 @@ test("Повторное нажатие отправки не создаёт в�
   const env = browser();
   let finish,
     requests = 0;
-  const controller = new AssistantController({
+  const controller = assistant({
     browser: env,
     api: () => {
       requests++;
@@ -167,7 +176,7 @@ test("Новая команда доступна сразу и запускае�
   ]) {
     const env = browser();
     const requests = [];
-    const controller = new AssistantController({
+    const controller = assistant({
       browser: env,
       api: async (path, options) => {
         requests.push({ path, method: options?.method });
@@ -200,7 +209,7 @@ test("Позднее восстановление не возвращает ст
   const env = browser();
   env.saved.set("massive.dialogue", "42");
   let finish;
-  const controller = new AssistantController({
+  const controller = assistant({
     browser: env,
     api: () =>
       new Promise((resolve) => {
@@ -219,7 +228,7 @@ test("Позднее восстановление не возвращает ст
 
 test("Ошибка отмены сохраняет текущий диалог и не включает новый микрофон", async () => {
   const env = browser();
-  const controller = new AssistantController({
+  const controller = assistant({
     browser: env,
     api: async () => {
       throw new Error("Нет связи");

@@ -1,5 +1,6 @@
 import { dialogueApi, HELLO, ACTIVE_PHASES } from "../../../features/dialogue/headless.js";
 import { VoiceSession } from "../../../features/voice/headless.js";
+import { BrowserExecutor } from "../../../features/browser-executor/headless.js";
 import { readStorage, removeStorage, writeStorage } from "../../../shared/lib/storage.js";
 
 const clean = (text) =>
@@ -12,7 +13,7 @@ const clean = (text) =>
 
 /** Browser side effects and API transitions; React owns rendering through the store. */
 export class AssistantController {
-  constructor({ browser = globalThis, api = dialogueApi } = {}) {
+  constructor({ browser = globalThis, api = dialogueApi, executor } = {}) {
     this.browser = browser;
     this.api = api;
     this.listeners = new Set();
@@ -20,6 +21,7 @@ export class AssistantController {
     this.connected = false;
     this.pollTimer = null;
     this.pollInFlight = false;
+    this.localExecutions = new Set();
     this.voice = new VoiceSession({
       browser,
       getState: () => this.state,
@@ -29,9 +31,11 @@ export class AssistantController {
       getQuestion: () => this.state.current?.question,
       isConnected: () => this.connected,
     });
+    this.executor = executor ?? new BrowserExecutor({ browser, onAlarm: () => this.alarmFired() });
     this.state = {
       current: null,
       busy: false,
+      executing: false,
       voiceActive: false,
       speaking: false,
       paused: false,
@@ -71,6 +75,7 @@ export class AssistantController {
   connect() {
     this.connected = true;
     const epoch = ++this.epoch;
+    const disconnectExecutor = this.executor.connect();
     this.restore(epoch);
     return () => {
       this.connected = false;
@@ -78,6 +83,7 @@ export class AssistantController {
       this.stopPolling();
       this.stopRecognition();
       this.stopSpeech();
+      disconnectExecutor();
     };
   }
   async restore(epoch) {
@@ -131,13 +137,14 @@ export class AssistantController {
       this.pauseVoice();
       return;
     }
-    if (this.state.busy || this.state.current?.phase === "ready") return;
+    if (this.state.busy || this.state.executing || this.state.current?.phase === "ready") return;
+    this.executor.enableAudio();
     if (this.state.current && !ACTIVE_PHASES.has(this.state.current.phase))
       this.reset({ readAloud: false });
     this.voice.start(this.state.current?.spoken_text || HELLO);
   };
-  startNewCommand = async () => {
-    if (this.state.busy) return;
+  prepareNewCommand = async () => {
+    if (this.state.busy || this.state.executing) return false;
     const current = this.state.current;
     if (current && ACTIVE_PHASES.has(current.phase)) {
       this.stopRecognition();
@@ -146,28 +153,98 @@ export class AssistantController {
       const epoch = this.epoch;
       try {
         await this.api("/" + current.id + "/cancel", { method: "POST" });
-        if (!this.connected || epoch !== this.epoch) return;
+        if (!this.connected || epoch !== this.epoch) return false;
       } catch (error) {
         if (this.connected && epoch === this.epoch) {
           this.patch({ error: error.message, lastMessage: error.message });
           this.speak(error.message);
         }
-        return;
+        return false;
       } finally {
         if (this.connected && epoch === this.epoch) this.patch({ busy: false });
       }
     }
     this.reset({ readAloud: false });
+    return true;
+  };
+  startNewCommand = async () => {
+    this.executor.enableAudio();
+    if (!(await this.prepareNewCommand())) return;
     if (this.Recognition) this.voice.start(HELLO);
     else {
       this.patch({ textEntryOpen: true, audioEnabled: this.canSpeak });
       this.speak(HELLO);
     }
   };
+  runExample = async (text) => {
+    this.executor.enableAudio();
+    if (!(await this.prepareNewCommand())) return;
+    this.patch({
+      audioEnabled: this.canSpeak,
+      voiceActive: Boolean(this.Recognition),
+      paused: false,
+    });
+    await this.send(text);
+  };
+  alarmFired() {
+    this.stopRecognition();
+    this.stopSpeech();
+    const message = "Будильник. Время вышло. Нажмите «Остановить сигнал».";
+    this.patch({ voiceActive: false, speaking: false, paused: false, lastMessage: message });
+    this.speak(message);
+  }
+  async performLocal(command) {
+    if (this.localExecutions.has(command.id)) return;
+    this.localExecutions.add(command.id);
+    this.patch({ executing: true, voiceActive: false, speaking: false });
+    this.stopRecognition();
+    this.stopSpeech();
+    const epoch = this.epoch;
+    try {
+      const receipt = await this.executor.execute(command);
+      const result = await this.api("/" + command.id + "/execution", {
+        method: "POST",
+        body: JSON.stringify(receipt),
+      });
+      if (this.connected && epoch === this.epoch && this.state.current?.id === command.id) {
+        this.patch({ error: null });
+        this.render(result);
+      }
+    } catch (error) {
+      if (!this.connected || epoch !== this.epoch || this.state.current?.id !== command.id) return;
+      if (error.status === 409) {
+        try {
+          const result = await this.api("/" + command.id);
+          if (epoch !== this.epoch || !this.connected) return;
+          if (result.phase !== "ready") {
+            this.render(result);
+            return;
+          }
+        } catch {}
+      }
+      const message = "Не удалось сохранить результат выполнения. Проверяю связь с сервером.";
+      if (!this.state.error) this.speak(message);
+      this.patch({ error: message, lastMessage: message });
+      this.startPolling();
+    } finally {
+      this.localExecutions.delete(command.id);
+      this.patch({ executing: this.localExecutions.size > 0 });
+    }
+  }
   render(data, { prefix = "", readAloud = true } = {}) {
     writeStorage(this.browser.localStorage, "massive.dialogue", data.id);
-    const lastMessage = prefix ? prefix + " " + data.spoken_text : data.spoken_text;
+    const local = data.phase === "ready" && this.executor.supports(data.intent);
+    const lastMessage = local
+      ? "Выполняю команду."
+      : prefix
+        ? prefix + " " + data.spoken_text
+        : data.spoken_text;
     this.patch({ current: data, lastMessage, screenreaderMessage: lastMessage });
+    if (local) {
+      this.stopPolling();
+      this.performLocal(data);
+      return;
+    }
     if (readAloud) {
       this.log("Помощник", lastMessage);
       this.speak(lastMessage, this.state.voiceActive && ACTIVE_PHASES.has(data.phase));
@@ -196,6 +273,8 @@ export class AssistantController {
       if (data.phase !== "ready") {
         this.stopPolling();
         this.render(data);
+      } else if (this.executor.supports(data.intent)) {
+        await this.performLocal(data);
       } else if (++this.pollCount >= 60) {
         this.stopPolling();
         const message =
@@ -220,9 +299,10 @@ export class AssistantController {
     }
   }
   send = async (text) => {
-    if (this.state.busy) return;
+    if (this.state.busy || this.state.executing) return;
     text = text.trim();
     if (!text) return;
+    this.executor.enableAudio();
     const control = clean(text);
     if (["повтори", "повтори вопрос", "повтори сообщение"].includes(control)) {
       await this.repeat();
@@ -276,7 +356,8 @@ export class AssistantController {
   };
   cancel = async () => {
     const current = this.state.current;
-    if (this.state.busy || !current || !ACTIVE_PHASES.has(current.phase)) return;
+    if (this.state.busy || this.state.executing || !current || !ACTIVE_PHASES.has(current.phase))
+      return;
     this.stopRecognition();
     this.stopSpeech();
     this.patch({ busy: true, voiceActive: false, speaking: false });
@@ -296,7 +377,7 @@ export class AssistantController {
     }
   };
   repeat = async () => {
-    if (this.state.busy) return;
+    if (this.state.busy || this.state.executing) return;
     this.patch({ paused: false, audioEnabled: this.canSpeak });
     const epoch = this.epoch;
     if (this.state.current) {
@@ -312,7 +393,7 @@ export class AssistantController {
     } else this.speak(this.state.lastMessage, this.state.voiceActive);
   };
   reset = ({ readAloud = true } = {}) => {
-    if (this.state.busy) return;
+    if (this.state.busy || this.state.executing) return;
     this.epoch++;
     this.stopPolling();
     this.stopRecognition();
