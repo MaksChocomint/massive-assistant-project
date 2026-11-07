@@ -38,12 +38,6 @@ def index() -> FileResponse:
     return FileResponse(STATIC / "index.html")
 
 
-@app.get("/presentation", include_in_schema=False)
-def presentation() -> FileResponse:
-    """Семь слайдов для защиты; работают локально без внешних ресурсов."""
-    return FileResponse(STATIC / "presentation.html")
-
-
 @app.get("/api/health", tags=["Служебное"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
