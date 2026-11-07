@@ -182,7 +182,7 @@ def test_health_and_ui(client: TestClient) -> None:
     assert client.get("/api/health").json() == {"status": "ok"}
     assert client.get("/").status_code == 200
     assert client.get("/docs").status_code == 200
-    assert client.get("/presentation").status_code == 200
+    assert client.get("/presentation").status_code == 404
 
 
 @pytest.mark.parametrize(

@@ -47,7 +47,6 @@ PowerShell: вместо `cp` можно использовать `Copy-Item .en
 
 - веб-интерфейс: <http://localhost:8000/>
 - Swagger: <http://localhost:8000/docs>
-- презентация из 7 слайдов: <http://localhost:8000/presentation> (стрелки, печать в PDF).
 
 Если порты заняты, измените `APP_PORT` и `DB_PORT` в `.env`, например на `8010` и `5435`.
 Тогда интерфейс открывается на `http://localhost:8010`. Для локального Python также
@@ -78,7 +77,9 @@ uvicorn app.main:app --reload
 
 ## База данных
 
-9 таблиц, схема и ограничения — в [docs/erd.md](docs/erd.md).
+9 таблиц, 45 атрибутов и 9 внешних ключей. Схема и ограничения — в [docs/erd.md](docs/erd.md).
+
+[![ER-диаграмма: сущности, атрибуты и связи](app/static/assets/erd.svg)](app/static/assets/erd.svg)
 
 | Таблица | Что хранит |
 | --- | --- |
@@ -274,7 +275,6 @@ app/
 migrations/      миграции Alembic
 tests/           pytest
 docs/erd.md      ERD
-docs/defense.md  сценарий защиты и соответствие требованиям
 data/            CSV датасета
 ```
 
@@ -290,10 +290,6 @@ data/            CSV датасета
 Изменения для ревью: [Pull Requests](https://github.com/MaksChocomint/massive-assistant-project/pulls).
 Пошаговая работа с ветками и PR описана в [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Первичная публикация сохраняет историю разработки и текущий рабочий проект в main.
-Дальнейшие изменения оформляются через PR. Сам факт настройки GitHub не заменяет
-требуемое методичкой ревью: до сдачи нужны минимум 3 PR, ревью минимум двух своих
-и двух чужих PR с содержательными замечаниями. Подробности — в
-[сценарии защиты](docs/defense.md).
+Изменения приложения оформляются через отдельные PR с описанием и проверками CI.
 
 Результаты фактических локальных проверок: [docs/verification.md](docs/verification.md).
