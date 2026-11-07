@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { AssistantController } from "./assistant-controller.js";
 
-export function useAssistant() {
+export function useAssistant({ voiceShortcuts = true } = {}) {
   const [controller] = useState(() => new AssistantController());
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const execution = useSyncExternalStore(
@@ -10,9 +10,21 @@ export function useAssistant() {
   );
   useEffect(() => {
     const disconnect = controller.connect();
+    const pagehide = () => {
+      controller.stopPolling();
+      controller.pauseVoice();
+      controller.executor.disconnect();
+    };
+    window.addEventListener("pagehide", pagehide);
+    return () => {
+      window.removeEventListener("pagehide", pagehide);
+      disconnect();
+    };
+  }, [controller]);
+  useEffect(() => {
     const keydown = (event) => {
       if (event.key === "Escape") controller.pauseVoice();
-      if (event.altKey && !event.ctrlKey && !event.metaKey) {
+      if (voiceShortcuts && event.altKey && !event.ctrlKey && !event.metaKey) {
         if (event.code === "KeyM") {
           event.preventDefault();
           controller.startVoice();
@@ -23,18 +35,8 @@ export function useAssistant() {
         }
       }
     };
-    const pagehide = () => {
-      controller.stopPolling();
-      controller.pauseVoice();
-      controller.executor.disconnect();
-    };
     window.addEventListener("keydown", keydown);
-    window.addEventListener("pagehide", pagehide);
-    return () => {
-      window.removeEventListener("keydown", keydown);
-      window.removeEventListener("pagehide", pagehide);
-      disconnect();
-    };
-  }, [controller]);
+    return () => window.removeEventListener("keydown", keydown);
+  }, [controller, voiceShortcuts]);
   return { state, execution, controller };
 }

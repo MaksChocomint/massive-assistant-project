@@ -8,13 +8,16 @@ FastAPI раздаёт сборку из app/static/ui; в production отдел
     src/
       app/                    # Корневой App и глобальные стили
       pages/assistant/        # Компоновка страницы
+      pages/history/          # Страница истории и аналитики
       widgets/assistant/      # Объединение функций в рабочий диалог
         ui/                   # Assistant и справка
         model/                # Координатор сценария и React-hook
+      widgets/activity/       # Компоновка журнала, фильтров и метрик
       features/
         dialogue/             # API, фазы, форма, ответ, история, действия
         voice/                # ASR/TTS, микрофон, скорость, WAV/AudioWorklet
         browser-executor/     # Будильник, фон, дата/время, квитанции исполнения
+        activity/             # API журнала, загрузка, фильтры, таблица, аналитика
       shared/
         api/                  # Общий HTTP-клиент
         lib/                  # Безопасная работа с localStorage
@@ -30,7 +33,8 @@ index.js — публичные UI-экспорты слайса. headless.js �
 Сегменты ui, model, api и lib выделяют разные обязанности внутри слайса.
 
 Общего глобального контекста для всего приложения нет: useAssistant создаёт
-координатор одного виджета и подписывает React через useSyncExternalStore.
+координатор помощника на уровне App и подписывает React через useSyncExternalStore.
+Смена страницы не размонтирует координатор и не прерывает отсчёт будильника.
 Снимки состояния неизменяемые. useEffect подключает и очищает обработчики
 клавиатуры, микрофон, речь и polling. React StrictMode включён.
 
@@ -48,6 +52,8 @@ index.js — публичные UI-экспорты слайса. headless.js �
 - Связь голоса, API, polling и состояния страницы: widgets/assistant/model.
 - Общая структура экрана: pages/assistant/ui/AssistantPage.jsx.
 - Глобальная тема: app/styles.css.
+- Меню и навигация без перезагрузки: app/model/useNavigation.js и app/App.jsx.
+- История и метрики: features/activity; сборка панели — widgets/activity.
 
 Новая функция не должна добавляться ветками в App: выделите её в features и подключите
 в нужном widget. Общую техническую утилиту переносите в shared только при реальном

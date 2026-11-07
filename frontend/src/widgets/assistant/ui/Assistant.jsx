@@ -6,10 +6,9 @@ import {
   TextEntry,
   DialogueDetails,
 } from "../../../features/dialogue/index.js";
-import { useAssistant } from "../model/useAssistant.js";
 
-export function Assistant() {
-  const { state, execution, controller: c } = useAssistant();
+export function Assistant({ assistant }) {
+  const { state, execution, controller: c } = assistant;
   const s = { ...state, busy: state.busy || state.executing };
   const ownSpeech = s.audioEnabled && c.canSpeak && !s.paused;
   const pending = s.current?.phase === "ready";
