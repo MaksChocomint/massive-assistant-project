@@ -46,540 +46,511 @@
       </section>
 
       <section
-        class="slide"
+        class="slide dataset-slide"
         id="slide-2"
-        aria-label="2. Для каких систем и какие альтернативы"
+        aria-label="2. Датасет MASSIVE и название приложения"
         aria-roledescription="слайд"
         hidden
       >
-        <div class="kicker">
-          <span>02 / Контекст и альтернативы</span><span>Место в продукте</span>
-        </div>
-        <h2>Кому нужен такой компонент?</h2>
-        <div class="three use-cases">
-          <article>
-            <span class="symbol">◉</span>
-            <h3>Голосовой помощник</h3>
-            <p>
-              Будильники, таймеры, напоминания. Уточнить время и повторить действие перед отправкой.
-            </p>
-          </article>
-          <article>
-            <span class="symbol">⌂</span>
-            <h3>Умный дом</h3>
-            <p>Свет и устройства. Согласовать объект и параметры; получить ответ контроллера.</p>
-          </article>
-          <article>
-            <span class="symbol">◧</span>
-            <h3>Доступное приложение</h3>
-            <p>
-              Мобильный или веб-клиент с голосом и экранным диктором. Один API для разных клиентов.
-            </p>
-          </article>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Подход</th>
-                <th>Как завершает сценарий</th>
-                <th>Ограничение / выбор</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Доступная форма</td>
-                <td>Поля заполняются через элементы интерфейса</td>
-                <td>Работает с экранным диктором; требуется навигация по полям</td>
-              </tr>
-              <tr>
-                <td>Разовый голосовой запрос</td>
-                <td>Сразу передаёт распознанную команду</td>
-                <td>Без диалога неполный запрос требует повторного ввода</td>
-              </tr>
-              <tr class="selected">
-                <td>Отдельный менеджер диалога</td>
-                <td>Уточняет → зачитывает → ждёт результат</td>
-                <td>Выбран в проекте: явные состояния и независимый исполнитель</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="footnote">
-          Сравниваются способы организации интерфейса. Наличие уточнений в конкретных коммерческих
-          ассистентах здесь не оценивается. Перечисленные интеграции — целевые, в демо устройства не
-          подключены.
-        </p>
-      </section>
-
-      <section
-        class="slide"
-        id="slide-3"
-        aria-label="3. Решение и граница сервиса"
-        aria-roledescription="слайд"
-        hidden
-      >
-        <div class="kicker"><span>03 / Решение</span><span>Самостоятельный API-сервис</span></div>
-        <h2>Между распознаванием речи<br />и реальным исполнителем</h2>
-        <p class="subtitle">
-          Один FastAPI-сервис с собственной БД. Компонент для встраивания в голосового помощника.
-        </p>
-        <div class="architecture">
-          <div class="endpoint">
-            <span class="symbol">♫</span>
-            <h3>Голосовой клиент</h3>
-            <p>Микрофон → ASR<br />Текст → TTS / диктор</p>
-            <small>В демо — браузер</small>
-          </div>
-          <div class="arrow" aria-hidden="true">⇄</div>
-          <div class="service">
-            <span class="tag">Разрабатываемая система</span>
-            <h3>MASSIVE. Диалог</h3>
-            <ol>
-              <li>Определить намерение</li>
-              <li>Найти недостающие параметры</li>
-              <li>Задать вопрос и проверить ответ</li>
-              <li>Зачитать и получить «да»</li>
-              <li>Сохранить ответ исполнителя</li>
-            </ol>
-          </div>
-          <div class="arrow" aria-hidden="true">⇄</div>
-          <div class="endpoint">
-            <span class="symbol">⚙</span>
-            <h3>Исполнитель</h3>
-            <p>Планировщик будильников,<br />контроллер умного дома,<br />сервис календаря</p>
-            <small>Нужен отдельный адаптер</small>
-          </div>
-        </div>
-        <div class="two">
-          <div class="callout">
-            <b>Пока данных не хватает</b>
-            <p>Сервис возвращает вопрос. Голосовой клиент озвучивает его и снова слушает ответ.</p>
-          </div>
-          <div class="callout amber">
-            <b>После согласования</b>
-            <p>
-              ready означает готовность к передаче. Только квитанция исполнителя меняет состояние на
-              выполнено или ошибку.
-            </p>
-          </div>
-        </div>
-        <p class="footnote">
-          ASR — преобразование речи в текст; TTS — синтез речи. MASSIVE используется для понимания
-          текста; обучение распознаванию аудио в проект не входит.
-        </p>
-      </section>
-
-      <section
-        class="slide terminology-slide"
-        id="slide-4"
-        aria-label="4. Техническая цепочка и термины"
-        aria-roledescription="слайд"
-        hidden
-      >
-        <div class="kicker">
-          <span>04 / Техническая цепочка</span><span>Пример: установка будильника</span>
-        </div>
-        <h2>Как речь превращается в команду и ответ</h2>
-        <p class="pipeline-summary">
-          <b>ASR</b><span aria-hidden="true">→</span><b>NLU</b><span aria-hidden="true">→</span
-          ><b>Уточнение и «да»</b><span aria-hidden="true">→</span><b>Исполнитель</b
-          ><span aria-hidden="true">→</span><b>Квитанция</b><span aria-hidden="true">→</span
-          ><b>TTS</b>
-        </p>
-        <div class="table-wrap">
-          <table class="terminology-table">
-            <thead>
-              <tr>
-                <th>Термин</th>
-                <th>Роль в цепочке</th>
-                <th>Пример</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>ASR</td>
-                <td>Преобразует звук в текст</td>
-                <td>Vosk распознал: «Поставь будильник»</td>
-              </tr>
-              <tr>
-                <td>NLU</td>
-                <td>Определяет намерение, помогает найти параметры</td>
-                <td>Распознано действие alarm_set</td>
-              </tr>
-              <tr>
-                <td>Scenario</td>
-                <td>Группа похожих действий</td>
-                <td>alarm — действия с будильником</td>
-              </tr>
-              <tr>
-                <td>Intent</td>
-                <td>Конкретное намерение пользователя</td>
-                <td>alarm_set — установить будильник</td>
-              </tr>
-              <tr>
-                <td>Slot</td>
-                <td>Параметр действия</td>
-                <td>time = «семь утра», получено после уточнения</td>
-              </tr>
-              <tr>
-                <td>Исполнитель</td>
-                <td>Внешняя система выполняет действие</td>
-                <td>Планировщик создаёт будильник</td>
-              </tr>
-              <tr>
-                <td>Квитанция</td>
-                <td>Исполнитель сообщает результат</td>
-                <td>success = true, operation_id = alarm-42</td>
-              </tr>
-              <tr>
-                <td>TTS</td>
-                <td>Преобразует текст ответа в речь</td>
-                <td>Браузер зачитывает результат исполнителя</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="footnote">
-          Scenario, Intent и Slot описывают смысл команды внутри NLU, а не отдельные этапы
-          обработки. Если time отсутствует, сервис задаёт вопрос; вопросы и проверка команды также
-          озвучиваются через TTS. Внешний исполнитель в демо не подключён.
-        </p>
-      </section>
-
-      <section
-        class="slide"
-        id="slide-5"
-        aria-label="5. Сценарий будильника от команды до обратной связи"
-        aria-roledescription="слайд"
-        hidden
-      >
-        <div class="kicker">
-          <span>05 / Как проходит сценарий</span><span>Пример: будильник</span>
-        </div>
-        <h2>Пользователь слышит каждый важный шаг</h2>
-        <div class="two scenario">
-          <div class="conversation">
-            <div class="utterance human"><small>Пользователь</small>Поставь будильник.</div>
-            <div class="utterance assistant">
-              <small>Помощник · уточнение</small>На какое время поставить будильник?
-            </div>
-            <div class="utterance human"><small>Пользователь</small>На семь утра.</div>
-            <div class="utterance assistant">
-              <small>Помощник · проверка</small>Будильник. Время: семь утра.<br />Всё верно? Скажите
-              «да» или «нет».
-            </div>
-            <div class="utterance human"><small>Пользователь</small>Да.</div>
-          </div>
-          <div class="scenario-result">
-            <div class="stage">
-              <span>1</span>
-              <div>
-                <b>Команда согласована</b>
-                <p>
-                  ready · Подготовлены намерение и параметры. Интерфейс сообщает об ожидании
-                  исполнителя.
-                </p>
-              </div>
-            </div>
-            <div class="stage">
-              <span>2</span>
-              <div>
-                <b>Адаптер выполняет действие</b>
-                <p>
-                  Преобразует время с учётом даты и часового пояса, вызывает систему и проверяет
-                  результат.
-                </p>
-              </div>
-            </div>
-            <div class="stage">
-              <span>3</span>
-              <div>
-                <b>Квитанция → голосовой ответ</b>
-                <p>
-                  Успех: «Исполнитель подтвердил выполнение…»<br />Ошибка: «Исполнитель сообщил об
-                  ошибке…»
-                </p>
-              </div>
-            </div>
-            <div class="callout amber">
-              Ваше «да» подтверждает параметры. Результат действия отдельно сообщает устройство; в
-              демо оно не подключено.
-            </div>
-            <p class="fine">
-              Шаги 2–3 показывают контракт интеграции. Реальный будильник в текущем демо не
-              устанавливается.
-            </p>
-          </div>
-        </div>
-        <p class="footnote">
-          Ошибка ответа → повторный вопрос; «нет» → отмена и новый диалог; «повтори» → повтор
-          сообщения. После исчерпания лимита уточнений — понятное сообщение о незавершении.
-        </p>
-      </section>
-
-      <section
-        class="slide erd-slide"
-        id="slide-6"
-        aria-label="6. ER-диаграмма и техническая реализация"
-        aria-roledescription="слайд"
-        hidden
-      >
-        <div class="kicker">
-          <span>06 / Структура данных</span><span>PostgreSQL · SQLAlchemy · Alembic</span>
-        </div>
-        <h2>ER-диаграмма: 9 сущностей, их атрибуты и связи</h2>
-        <figure class="erd-figure">
-          <a
-            href="/static/assets/erd.svg"
-            target="_blank"
-            rel="noopener"
-            aria-label="Открыть полную ER-диаграмму в новой вкладке"
-            ><img
-              src="/static/assets/erd.svg"
-              width="1680"
-              height="850"
-              alt="Схема всех девяти таблиц: scenarios, intents, utterances, slot_types, intent_slots, users, commands, command_slots, dialogue_sessions. Указаны все 45 атрибутов, типы, первичные и внешние ключи, уникальность и кратность девяти связей."
-          /></a>
-          <figcaption>
-            <a href="/static/assets/erd.svg" target="_blank" rel="noopener"
-              >Открыть схему в полном размере ↗</a
-            >
-            · M:N через две ассоциативные таблицы · Команда → диалог: 1 : 0..1
-          </figcaption>
-        </figure>
-        <details class="erd-context">
-          <summary>Данные и реализация модели</summary>
-          <div class="two technical">
-            <article class="panel">
-              <span class="tag">MASSIVE · русские текстовые фразы</span>
-              <div class="data-flow">
-                <div><strong>16 521</strong><small>строк CSV</small></div>
-                <span>→</span>
-                <div><strong>15 642</strong><small>после очистки</small></div>
-              </div>
-              <p><b>60 намерений · 18 сценариев</b></p>
-              <p>Обучение: 10 907 фраз<br />Валидация: 1 916 · тест: 2 819</p>
-              <div class="divider"></div>
-              <h3>TF-IDF + LinearSVC</h3>
-              <p>
-                Слова и символьные n-граммы; калибровка уверенности. Модель намерений работает на
-                CPU без внешнего AI API.
-              </p>
-              <p class="fine">
-                Слоты извлекаются правилами и словарём. Обязательные поля и вопросы заданы вручную;
-                MASSIVE не является набором диалогов незрячих пользователей.
-              </p>
-            </article>
-            <article class="panel">
-              <h3>FastAPI + PostgreSQL</h3>
-              <ul class="tech-list">
-                <li><b>Диалог:</b> состояния, валидация, подтверждение, квитанция исполнения</li>
-                <li><b>Хранение:</b> 9 связанных таблиц, SQLAlchemy, миграции Alembic</li>
-                <li>
-                  <b>Клиент:</b> React + Vite, Web Speech API, клавиатура, текстовый резерв,
-                  доступные сообщения
-                </li>
-                <li><b>Запуск:</b> Docker Compose, bootstrap данных, pytest, GitHub Actions</li>
-              </ul>
-              <div class="code-block">
-                <code
-                  >POST /api/dialogues<br />POST /api/dialogues/{id}/answer<br />GET&nbsp;
-                  /api/dialogues/{id}<br />POST /api/dialogues/{id}/execution</code
-                >
-              </div>
-              <p class="fine">
-                В пользовательском запросе только text. Выбор аккаунта не нужен; внутренний
-                технический профиль создаётся автоматически.
-              </p>
-            </article>
-          </div>
-        </details>
-        <p class="footnote">
-          MASSIVE: 16 521 → 15 642 фразы; train 10 907 / dev 1 916 / test 2 819. Намерения: TF-IDF +
-          LinearSVC; параметры и вопросы — по правилам. Схема построена из текущих ORM-моделей;
-          служебная alembic_version не показана.
-        </p>
-      </section>
-
-      <section
-        class="slide"
-        id="slide-7"
-        aria-label="7. Измеренные результаты и границы проверки"
-        aria-roledescription="слайд"
-        hidden
-      >
-        <div class="kicker"><span>07 / Результаты</span><span>Что измерено</span></div>
-        <h2>Работающий диалог и проверяемые результаты</h2>
-        <div class="metric-row">
+        <div class="kicker"><span>02 / Данные</span></div>
+        <h2>Выбранный датасет — <em>MASSIVE</em></h2>
+        <p class="subtitle">Amazon Science · размеченные текстовые команды голосовым помощникам</p>
+        <dl class="dataset-numbers" aria-label="Состав локальной русской выборки">
           <div>
-            <strong>82,80<span>%</span></strong>
-            <p>Accuracy намерений<br />на test · 2 819 фраз</p>
+            <dt>русских фраз</dt>
+            <dd>16 521</dd>
           </div>
           <div>
-            <strong>0,7859</strong>
-            <p>Macro F1 на test<br />среднее по намерениям</p>
+            <dt>сценариев</dt>
+            <dd>18</dd>
           </div>
           <div>
-            <strong id="test-count">116</strong>
-            <p>pytest-тестов<br />API, ETL и бизнес-логики</p>
+            <dt>намерений</dt>
+            <dd>60</dd>
           </div>
-        </div>
-        <div class="two">
-          <article class="panel">
-            <h3>Реализовано</h3>
+          <div>
+            <dt>типов параметров</dt>
+            <dd>55</dd>
+          </div>
+        </dl>
+        <div class="dataset-layout">
+          <section class="dataset-record" aria-label="Пример записи из massive_ru.csv">
+            <h3>Из чего состоит запись</h3>
+            <p class="dataset-meta">
+              <code>id: 3759</code><span>·</span><code>partition: train</code>
+            </p>
+            <dl class="dataset-fields">
+              <div>
+                <dt>utt — фраза</dt>
+                <dd class="dataset-utterance">«разбуди меня в семь утра»</dd>
+              </div>
+              <div>
+                <dt>annot_utt — разметка</dt>
+                <dd class="dataset-annotation">
+                  <code>разбуди меня в <mark>[time : семь утра]</mark></code>
+                </dd>
+              </div>
+            </dl>
+            <dl class="dataset-labels">
+              <div>
+                <dt>scenario — сценарий</dt>
+                <dd><code>alarm</code></dd>
+              </div>
+              <div>
+                <dt>intent — намерение</dt>
+                <dd><code>alarm_set</code></dd>
+              </div>
+            </dl>
+          </section>
+          <section class="dataset-purpose" aria-labelledby="dataset-purpose-title">
+            <h3 id="dataset-purpose-title">Зачем нужен в проекте</h3>
             <ul>
-              <li>Уточнение недостающих полей и проверка ответа</li>
-              <li>Обязательное проговаривание и согласование</li>
-              <li>Раздельные состояния готовности и исполнения</li>
-              <li>Повтор, отмена, восстановление диалога</li>
-              <li>Голосовой цикл клиента и текстовый резерв</li>
+              <li>
+                <strong>Фразы и intent</strong><span>Обучение классификатора намерений.</span>
+              </li>
+              <li>
+                <strong>Разметка параметров</strong
+                ><span>Типы и примеры значений для извлечения.</span>
+              </li>
+              <li>
+                <strong>train / dev / test</strong
+                ><span>Обучение, промежуточная и итоговая проверка.</span>
+              </li>
             </ul>
-          </article>
-          <article class="panel">
-            <h3>Как интерпретировать</h3>
-            <p>
-              Метрики относятся к классификации текста. Они не показывают точность распознавания
-              речи или доступность приложения для незрячих.
+            <p class="dataset-boundary">
+              Правила уточнения, согласования и исполнения реализованы в приложении.
             </p>
-            <p>
-              В Firefox проверен путь от синтетической аудиозаписи через AudioWorklet и Vosk до
-              диалога. TTS и нативный ASR браузера проверены с имитацией событий. Испытания с живой
-              речью и незрячими участниками ещё нужны.
-            </p>
-            <p class="fine">
-              Dev: accuracy 82,99%, macro F1 0,7786.<br />Источник: воспроизводимый отчёт
-              docs/evaluation.json.
-            </p>
-          </article>
+          </section>
         </div>
-        <p class="footnote">
-          Внешнее исполнение проверяется тестовой квитанцией, без вызова устройства. Автотесты
-          подтверждают правила и переходы, но не гарантируют безошибочный голосовой сценарий в
-          реальной среде.
+        <p class="dataset-name">
+          <strong>MASSIVE</strong> — источник данных. <strong>Диалог</strong> — уточнение команды и
+          подтверждение результата.
+        </p>
+        <p class="footnote dataset-source">
+          Источник:
+          <a href="https://huggingface.co/datasets/AmazonScience/massive"
+            >Amazon Science / MASSIVE</a
+          >, CC BY 4.0. Числа относятся к локальному massive_ru.csv; после очистки — 15 642 фразы.
         </p>
       </section>
 
       <section
-        class="slide capabilities-slide"
+        class="slide engineering-slide"
+        id="slide-3"
+        aria-label="3. Подготовка и импорт данных на Python"
+        aria-roledescription="слайд"
+        hidden
+      >
+        <div class="kicker"><span>03 / Python · данные</span></div>
+        <h2>ETL: из CSV в <em>PostgreSQL</em></h2>
+        <p class="subtitle">Стандартные csv, re, dataclasses и Counter · SQLAlchemy</p>
+        <ol class="flow-line flow-four">
+          <li>
+            <b>Извлечение</b><span>16 521 строка CSV<br />6 обязательных колонок</span>
+          </li>
+          <li>
+            <b>Проверка и очистка</b
+            ><span>Пустые поля, ID, partition,<br />дубликаты и разметка</span>
+          </li>
+          <li>
+            <b>Преобразование</b><span>Пробелы, справочники,<br />типы параметров</span>
+          </li>
+          <li>
+            <b>Загрузка через ORM</b><span>Сущности и связи<br />в реляционной БД</span>
+          </li>
+        </ol>
+        <div class="etl-counts">
+          <div><strong>16 521</strong><span>исходных строк</span></div>
+          <span class="count-arrow">−</span>
+          <div><strong>879</strong><span>повторяющихся фраз</span></div>
+          <span class="count-arrow">=</span>
+          <div><strong>15 642</strong><span>фразы после очистки</span></div>
+        </div>
+        <div class="technical-columns">
+          <section>
+            <h3>Повторный импорт безопасен</h3>
+            <p>external_id уже есть в БД → запись пропускается.</p>
+            <p>
+              Справочники ищутся по уникальному коду. Результат и причины отклонения записываются в
+              лог.
+            </p>
+          </section>
+          <section>
+            <h3>Данные и правила разделены</h3>
+            <p>Фразы и разметка — MASSIVE.</p>
+            <p>Обязательные параметры, порядок и вопросы — правила приложения в labels.py.</p>
+          </section>
+        </div>
+        <pre
+          class="code-panel"
+        ><code>python -m app.etl.import_massive --source data/massive_ru.csv</code></pre>
+        <p class="footnote">
+          Код: app/etl/import_massive.py и app/etl/labels.py. На этом CSV все 879 отклонений —
+          дубликаты; другие проверки также реализованы.
+        </p>
+      </section>
+
+      <section
+        class="slide engineering-slide"
+        id="slide-4"
+        aria-label="4. Обучение модели и смысл прогноза"
+        aria-roledescription="слайд"
+        hidden
+      >
+        <div class="kicker"><span>04 / Python · машинное обучение</span></div>
+        <h2>Модель прогнозирует <em>намерение</em></h2>
+        <p class="subtitle">scikit-learn: Pipeline + FeatureUnion + CalibratedClassifierCV</p>
+        <ol class="flow-line flow-four">
+          <li>
+            <b>Текст команды</b><span>«поставь будильник<br />через минуту»</span>
+          </li>
+          <li>
+            <b>TF-IDF</b><span>Слова: n-граммы 1–2<br />Символы: 2–5</span>
+          </li>
+          <li>
+            <b>LinearSVC</b><span>Веса для 60 классов<br />Калибровка: cv=3</span>
+          </li>
+          <li>
+            <b>Прогноз</b><span>intent: alarm_set<br />confidence: 0.896</span>
+          </li>
+        </ol>
+        <div class="technical-columns model-details">
+          <section>
+            <h3>Обучение и проверка разделены</h3>
+            <p>
+              <b>train: 10 907</b> — fit модели и словарей.<br /><b>dev: 1 916</b> — промежуточная
+              оценка.<br /><b>test: 2 819</b> — итоговая оценка.
+            </p>
+          </section>
+          <section>
+            <h3>Параметры извлекаются отдельно</h3>
+            <p>Словарь значений из train + правила времени и даты.</p>
+            <p>
+              Пример: <code>time = «через минуту»</code>.<br />confidence оценивает класс, а не
+              успех действия.
+            </p>
+          </section>
+        </div>
+        <div class="model-metrics">
+          <div><strong>82,8%</strong><span>accuracy на test</span></div>
+          <div><strong>0,7859</strong><span>macro-F1 на test</span></div>
+          <p>
+            Оценка базового текстового классификатора.<br />Это не точность ASR и не доля
+            исполненных команд.
+          </p>
+        </div>
+        <p class="footnote">
+          Код: app/services/nlu.py · app/evaluate.py · docs/evaluation.json. Pipeline хранится в
+          памяти процесса; обучение при первой команде или POST /api/nlu/train. Для явных
+          включить/выключить свет добавлено узкое правило.
+        </p>
+      </section>
+
+      <section
+        class="slide engineering-slide backend-slide"
+        id="slide-5"
+        aria-label="5. Python-бэкенд: слои, запросы, ответы и диалог"
+        aria-roledescription="слайд"
+        hidden
+      >
+        <div class="kicker"><span>05 / Python · REST API и бизнес-логика</span></div>
+        <h2>Как бэкенд обрабатывает команду</h2>
+        <p class="backend-context">
+          Микрофон → ASR (Vosk / браузер) → текст в HTTP-запросе → JSON-ответ → TTS
+        </p>
+        <ol class="flow-line flow-five">
+          <li>
+            <b>FastAPI</b><span>api/<br />маршрут и HTTP</span>
+          </li>
+          <li>
+            <b>Pydantic</b><span>schemas/<br />валидация и DTO</span>
+          </li>
+          <li>
+            <b>Сервисы</b><span>services/<br />NLU и диалог</span>
+          </li>
+          <li>
+            <b>ORM и запросы</b><span>repositories/, models/<br />SQLAlchemy Session</span>
+          </li>
+          <li>
+            <b>PostgreSQL</b><span>Команды, параметры,<br />состояния и квитанции</span>
+          </li>
+        </ol>
+        <div class="technical-columns api-exchange">
+          <section>
+            <h3>Запрос</h3>
+            <pre class="code-panel"><code>POST /api/dialogues
+{"text": "поставь будильник"}</code></pre>
+            <p class="http-statuses">
+              201 — создание · 400 — бизнес-ошибка<br />404 — нет объекта · 409 — конфликт · 422 —
+              валидация
+            </p>
+          </section>
+          <section>
+            <h3>Ответ 201 · фрагмент</h3>
+            <pre class="code-panel"><code>{
+  "intent": "alarm_set",
+  "phase": "clarifying",
+  "question": "На какое время поставить будильник?",
+  "execution_confirmed": false
+}</code></pre>
+          </section>
+        </div>
+        <p class="state-sequence">
+          <code>clarifying</code> → <code>awaiting_confirmation</code> → <code>ready</code> →
+          <code>executed / execution_failed</code>
+        </p>
+        <p class="backend-rule">
+          Обязательные параметры → проверка формата → согласие → квитанция исполнения.
+        </p>
+        <p class="footnote">
+          /answer продолжает диалог, /execution принимает результат. Квитанция: блокировка строки и
+          идемпотентный повтор. Весь диалог — несколько транзакций. CRUD справочников, фильтры и
+          единый формат ошибок сохранены.
+        </p>
+      </section>
+
+      <section
+        class="slide erd-slide defense-erd"
+        id="slide-6"
+        aria-label="6. База данных: полная ER-диаграмма"
+        aria-roledescription="слайд"
+        hidden
+      >
+        <div class="kicker"><span>06 / PostgreSQL · SQLAlchemy · Alembic</span></div>
+        <h2>9 связанных сущностей</h2>
+        <p class="subtitle">45 атрибутов · 9 внешних ключей · связи 1:N и M:N</p>
+        <figure class="erd-figure">
+          <img
+            src="/static/assets/erd.svg"
+            width="1680"
+            height="850"
+            alt="ER-диаграмма: scenarios, intents, slot_types, intent_slots, utterances, users, commands, command_slots, dialogue_sessions; все атрибуты и связи"
+          />
+        </figure>
+        <p class="erd-rules">
+          <b>M:N:</b> intent_slots и command_slots. <b>Целостность:</b> PK, FK, UNIQUE, CHECK и
+          индексы. <b>Схема:</b> обратимые Alembic-миграции; bootstrap и seed для запуска.
+        </p>
+        <p class="footnote">
+          Диаграмма построена из ORM-моделей: app/models/*.py и scripts/render_erd.py. Квитанция
+          хранится в dialogue_sessions; commands.status=completed означает собранные параметры.
+        </p>
+      </section>
+
+      <section
+        class="slide engineering-slide"
+        id="slide-7"
+        aria-label="7. Тесты, GitHub Actions и запуск в Docker"
+        aria-roledescription="слайд"
+        hidden
+      >
+        <div class="kicker"><span>07 / Качество и воспроизводимость</span></div>
+        <h2>Тесты проверяют <em>поведение бэкенда</em></h2>
+        <div class="quality-metrics">
+          <div><strong>146</strong><span>pytest-тестов</span></div>
+          <div><strong>92,37%</strong><span>покрытие Python-кода</span></div>
+          <div><strong>16</strong><span>frontend-тестов</span></div>
+        </div>
+        <div class="technical-columns testing-scope">
+          <section>
+            <h3>Что покрываем</h3>
+            <ul>
+              <li>ETL: очистка, разметка, повторный импорт.</li>
+              <li>API: CRUD, фильтры, пагинация и ошибки.</li>
+              <li>Диалог: параметры, лимит, согласие и квитанции.</li>
+              <li>БД: ограничения, связи, история и агрегации.</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Как изолируем проверки</h3>
+            <p>pytest + FastAPI TestClient + pytest-cov.</p>
+            <p>
+              SQLite в памяти — отдельно от рабочей БД.<br />Миграции и запуск дополнительно
+              проверяются на PostgreSQL.
+            </p>
+            <p>Порог покрытия в CI — 70%.</p>
+          </section>
+        </div>
+        <div class="ci-flow">
+          <strong>push / PR</strong><span>→</span>
+          <div><b>Параллельные jobs</b><small>lint · test · frontend · migrations</small></div>
+          <span>→</span>
+          <div><b>Docker</b><small>сборка · bootstrap · healthcheck · API</small></div>
+        </div>
+        <p class="technical-note">
+          Git: отдельные ветки и Pull Request. CI автоматизирован; автоматического развёртывания в
+          облаке нет.
+        </p>
+        <p class="footnote">
+          Код: tests/ · frontend/test/ · .github/workflows/ci.yml. GitHub Actions проверяет
+          зависимости, Ruff, Prettier, тесты, миграции и контейнер. Взаимное code review по
+          методичке — отдельное требование.
+        </p>
+      </section>
+
+      <section
+        class="slide engineering-slide demo-slide"
         id="slide-8"
-        aria-label="8. Возможности и ограничения на примерах"
+        aria-label="8. Три работающих сценария и результат в API"
         aria-roledescription="слайд"
         hidden
       >
-        <div class="kicker">
-          <span>08 / Возможности и ограничения</span><span>Поведение текущего прототипа</span>
+        <div class="kicker"><span>08 / Демонстрация</span></div>
+        <h2>Три сценария с результатом в браузере</h2>
+        <div class="demo-grid">
+          <figure>
+            <h3>Будильник</h3>
+            <img
+              src="/static/assets/demo-alarm.png"
+              alt="Настоящий интерфейс: установленный будильник и минутный отсчёт"
+            />
+            <figcaption>
+              «Поставь будильник через минуту»<br /><b>Отсчёт и звуковой сигнал</b>
+            </figcaption>
+          </figure>
+          <figure>
+            <h3>Свет</h3>
+            <img
+              src="/static/assets/demo-light.png"
+              alt="Настоящий интерфейс: свет выключен, фон страницы тёмный"
+            />
+            <figcaption>«Выключи / включи свет»<br /><b>Меняется фон страницы</b></figcaption>
+          </figure>
+          <figure>
+            <h3>Дата и время</h3>
+            <img
+              src="/static/assets/demo-datetime.png"
+              alt="Настоящий интерфейс: дата, день недели и время устройства"
+            />
+            <figcaption>
+              «Какой сегодня день и время?»<br /><b>Ответ по часам устройства</b>
+            </figcaption>
+          </figure>
         </div>
-        <h2>Какие команды понимает ассистент</h2>
-        <p class="subtitle">
-          60 намерений MASSIVE. Точность определения намерения на текстовом test: <b>82,80%</b>. Это
-          не точность выполнения действий.
-        </p>
-        <div class="table-wrap">
-          <table class="capabilities-table">
-            <thead>
-              <tr>
-                <th>Пример запроса</th>
-                <th>Что делает сейчас</th>
-                <th>Граница возможностей</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>«Поставь будильник»</td>
-                <td>Находит alarm_set, спрашивает время, зачитывает параметры и ждёт «да»</td>
-                <td>Без адаптера настоящий будильник не создаётся</td>
-              </tr>
-              <tr>
-                <td>«Разбуди меня в семь утра»</td>
-                <td>Находит время в исходной фразе и сразу просит подтверждение</td>
-                <td>«Семь утра» хранится текстом: дата и часовой пояс не вычисляются</td>
-              </tr>
-              <tr>
-                <td>«Сделай свет ярче»</td>
-                <td>Определяет намерение изменения яркости, согласует команду</td>
-                <td>Не выбирает конкретную лампу и не обращается к контроллеру</td>
-              </tr>
-              <tr>
-                <td>«Поставь будильник на семь утра в четверг»</td>
-                <td>Собирает обязательный для alarm_set параметр time</td>
-                <td>Дата не входит в обязательные слоты этого намерения и сейчас не сохраняется</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="capability-warning">
-          <b>Открытый разговор не поддерживается.</b> Неизвестная фраза может попасть в один из
-          известных классов. Полного отказа от запросов вне предметной области пока нет.
+        <pre class="code-panel demo-receipt"><code>{
+  "phase": "executed",
+  "execution_confirmed": true,
+  "execution_message": "Свет выключен."
+}</code></pre>
+        <p class="technical-note">
+          После согласия адаптер выполняет действие и отправляет POST /api/dialogues/{id}/execution.
+          История и аналитика читают сохранённый результат из БД.
         </p>
         <p class="footnote">
-          Намерение определяет ML; слоты извлекаются словарём и правилами. Доступны повтор, отмена
-          до передачи, текстовый ввод и скорость озвучивания 0,5–2×. Качество ASR и доступность не
-          измерены процентной метрикой.
+          Скриншоты работающего приложения. Для будильника подтверждается установка; для сигнала
+          вкладка должна оставаться открытой. Физические лампы и системный будильник не подключены.
         </p>
       </section>
 
       <section
-        class="slide"
+        class="slide engineering-slide limits-slide"
         id="slide-9"
-        aria-label="9. Вывод и развитие"
+        aria-label="9. Ограничения прототипа и подходы к реальной интеграции"
         aria-roledescription="слайд"
         hidden
       >
-        <div class="kicker"><span>09 / Вывод</span><span>От понимания к завершению</span></div>
-        <h2 class="closing-title">
-          Незрячему пользователю нужен<br /><em>слышимый и проверяемый результат.</em>
-        </h2>
-        <p class="lead closing-lead">
-          Сервис удерживает контекст, собирает детали и отделяет согласованную команду от
-          подтверждённого действия.
+        <div class="kicker"><span>09 / Границы и развитие</span></div>
+        <h2>Промежуточный ассистивный сервис</h2>
+        <div class="technical-columns limits-columns">
+          <section>
+            <h3>Ограничения текущей версии</h3>
+            <ul>
+              <li>60 известных намерений; возможны ошибки на новых формулировках.</li>
+              <li>Слоты и даты ограничены словарями и правилами.</li>
+              <li>Исполнители работают в браузере; физические устройства не подключены.</li>
+              <li>
+                Выбранный профиль, без идентификации голоса. Нет пользовательской авторизации и
+                испытаний с незрячими участниками.
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h3>Подходы в реальных системах</h3>
+            <dl class="approach-list">
+              <div>
+                <dt>Шаблоны и intent</dt>
+                <dd>Home Assistant: команды, параметры и реальные сущности дома.</dd>
+              </div>
+              <div>
+                <dt>Transformer-NLU</dt>
+                <dd>Предобученные модели для намерений и извлечения сущностей, например в Rasa.</dd>
+              </div>
+              <div>
+                <dt>LLM + инструменты</dt>
+                <dd>Модель формирует вызов; приложение проверяет и исполняет его.</dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+        <div class="integration-line">
+          <b>Для реальной интеграции</b>
+          <p>Авторизованный адаптер → API устройства → проверенный результат → квитанция.</p>
+          <small
+            >Нормализация времени · права доступа · таймауты · защита от повторного действия</small
+          >
+        </div>
+        <p class="technical-note">
+          Более сложная модель не заменяет согласование и проверку исполнения.
         </p>
-        <div class="three closing-cards">
-          <article>
-            <span class="step-number">01</span>
-            <h3>Что получилось</h3>
-            <p>
-              Голосовой React-клиент и API диалога на основе MASSIVE. Модуль можно встроить в
-              ассистента или систему умного дома.
-            </p>
-          </article>
-          <article>
-            <span class="step-number">02</span>
-            <h3>Границы прототипа</h3>
-            <p>
-              Устройства не подключены. ASR: браузерный сервис или локальный Vosk. Намерения
-              ограничены датасетом; время хранится текстом.
-            </p>
-          </article>
-          <article>
-            <span class="step-number">03</span>
-            <h3>Следующий этап</h3>
-            <p>
-              Адаптер реального устройства, нормализация времени, защита API и испытания с незрячими
-              пользователями и экранными дикторами.
-            </p>
-          </article>
+        <p class="footnote">
+          Примеры подходов:
+          <a href="https://contributors.home-assistant.io/architecture/platform/voice/"
+            >Home Assistant: voice architecture</a
+          >
+          ·
+          <a href="https://rasa.com/docs/reference/config/components/nlu-components"
+            >Rasa: NLU components</a
+          >. Это варианты развития, не реализованные интеграции проекта.
+        </p>
+      </section>
+
+      <section
+        class="slide engineering-slide conclusion-slide"
+        id="slide-10"
+        aria-label="10. Итог: реализация Python-информационной системы"
+        aria-roledescription="слайд"
+        hidden
+      >
+        <div class="kicker"><span>10 / Итог</span></div>
+        <h2>От датасета — к <em>Python-информационной системе</em></h2>
+        <div class="conclusion-results">
+          <div>
+            <span>01</span>
+            <section>
+              <h3>Данные</h3>
+              <p>Очистка, идемпотентный ETL, реляционная модель и аналитика.</p>
+            </section>
+          </div>
+          <div>
+            <span>02</span>
+            <section>
+              <h3>Бэкенд</h3>
+              <p>FastAPI, Pydantic, SQLAlchemy, классификатор и бизнес-правила диалога.</p>
+            </section>
+          </div>
+          <div>
+            <span>03</span>
+            <section>
+              <h3>Проверяемый результат</h3>
+              <p>Квитанции исполнения, тесты, GitHub CI и запуск через Docker Compose.</p>
+            </section>
+          </div>
         </div>
-        <div class="closing-rule">
-          Уточнить → проверить с человеком → получить результат → озвучить
-        </div>
-        <p class="footnote sources">
-          Основа требований к обратной связи:
-          <a href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
-            >W3C: Status Messages</a
-          >. Голосовой клиент:
-          <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition"
-            >MDN: SpeechRecognition</a
-          >,
-          <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis"
-            >SpeechSynthesis</a
-          >. Это ориентиры разработки, а не заявление о сертификации доступности.
+        <p class="conclusion-principle">Уточнить → согласовать → выполнить → озвучить результат</p>
+        <p class="conclusion-next">
+          Следующий шаг: адаптер реального устройства и проверка доступности с пользователями.
+        </p>
+        <p class="footnote">
+          Репозиторий:
+          <a href="https://github.com/MaksChocomint/massive-assistant-project"
+            >github.com/MaksChocomint/massive-assistant-project</a
+          >. Приложение и Swagger: localhost:8010 · /docs.
         </p>
       </section>
     </main>
     <footer class="deck-controls">
       <button id="prev" type="button" aria-label="Предыдущий слайд">←</button
-      ><span id="count" aria-live="polite">01 / 09</span>
+      ><span id="count" aria-live="polite">01 / 10</span>
       <nav class="deck-progress" aria-label="Слайды"></nav>
       <button id="next" type="button" aria-label="Следующий слайд">→</button
       ><button id="print" type="button">Печать / PDF</button>
