@@ -38,7 +38,6 @@ export default function App() {
           >
             История и аналитика
           </a>
-          <a href="/presentation">О проекте</a>
         </nav>
       </header>
       {page === "history" ? (
