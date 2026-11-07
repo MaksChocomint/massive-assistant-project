@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import BusinessError, ConflictError, NotFoundError, ServiceUnavailableError
 from app.models import Intent, User, Utterance
 from app.services import catalog, commands
-from app.services.nlu import Nlu, get_nlu, train_nlu
+from app.services.nlu import Nlu, disambiguate_light_intent, get_nlu, train_nlu
 
 
 def user_id(db: Session) -> int:
@@ -139,6 +139,36 @@ def test_supported_time_formats(text: str) -> None:
 def test_empty_training_data_is_reported(db: Session) -> None:
     with pytest.raises(ServiceUnavailableError, match="нет фраз"):
         Nlu().train(db)
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["через минуту", "через одну минуту", "через 10 секунд", "через секунду", "на минуту вперед"],
+)
+def test_relative_alarm_time_formats(text: str) -> None:
+    assert Nlu().find_slot("time", text) == text
+
+
+@pytest.mark.parametrize("text", ["через ноль секунд", "на ноль минут вперед"])
+def test_zero_relative_alarm_is_rejected(text: str) -> None:
+    assert Nlu().find_slot("time", text) is None
+
+
+@pytest.mark.parametrize(
+    ("text", "predicted", "expected"),
+    [
+        ("Включи свет", "iot_hue_lightup", "iot_hue_lighton"),
+        ("Включить свет", "iot_hue_lightup", "iot_hue_lighton"),
+        ("Зажги свет", "iot_hue_lightchange", "iot_hue_lighton"),
+        ("Выключи свет", "iot_hue_lightdim", "iot_hue_lightoff"),
+        ("Не включай свет", "iot_hue_lightup", "iot_hue_lightup"),
+        ("Как включить свет", "iot_hue_lightup", "iot_hue_lightup"),
+        ("Сделай свет ярче", "iot_hue_lightup", "iot_hue_lightup"),
+        ("Включи свет", "alarm_set", "alarm_set"),
+    ],
+)
+def test_explicit_light_action_disambiguation(text: str, predicted: str, expected: str) -> None:
+    assert disambiguate_light_intent(text, predicted) == expected
 
 
 def test_training_requires_more_than_one_class(loaded_db: Session) -> None:

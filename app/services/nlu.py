@@ -65,10 +65,14 @@ NUMBER_WORD = "(?:" + "|".join([*SMALL_NUMBERS, *TENS, "сто"]) + ")"
 NUMBER = rf"(?:\d+|{NUMBER_WORD}(?: {NUMBER_WORD}){{0,3}})"
 HOUR_UNIT = r"час(?:а|ов)?"
 MINUTE_UNIT = r"минут(?:а|у|ы)?"
+SECOND_UNIT = r"секунд(?:а|у|ы)?"
+RELATIVE_VALUE = (
+    rf"(?:{NUMBER} (?:{MINUTE_UNIT}|{HOUR_UNIT}|{SECOND_UNIT})|минуту|час|полчаса|секунду)"
+)
 PERIOD = r"(?:утра|вечера|дня|ночи)"
 TIME_RE = re.compile(
     rf"(?<![\w:.+-])(?:"
-    rf"через (?:(?P<duration>{NUMBER}) (?:{MINUTE_UNIT}|{HOUR_UNIT})|час|полчаса)|"
+    rf"(?P<relative>через {RELATIVE_VALUE}|на {RELATIVE_VALUE} вперед)|"
     r"(?P<clock_hour>\d+)[:.](?P<clock_minute>\d+)|"
     rf"(?P<hour>{NUMBER})(?: {HOUR_UNIT}"
     rf"(?: (?P<minute>{NUMBER})(?: {MINUTE_UNIT})?)?(?: {PERIOD})?| {PERIOD})|"
@@ -121,12 +125,29 @@ def find_formatted_slot(code: str, text: str) -> str | None:
                 minute = number_value(groups["minute"]) if groups["minute"] else 0
                 if hour is None or minute is None or not (0 <= hour <= 23 and 0 <= minute <= 59):
                     continue
-            elif groups["duration"] is not None:
-                duration = number_value(groups["duration"])
-                if duration is None or duration <= 0:
-                    continue
+            elif groups["relative"] is not None:
+                value = groups["relative"].removeprefix("через ").removeprefix("на ")
+                value = value.removesuffix(" вперед")
+                if value not in {"минуту", "час", "полчаса", "секунду"}:
+                    duration = number_value(value.rsplit(" ", 1)[0])
+                    if duration is None or duration <= 0:
+                        continue
         return match.group(0)
     return None
+
+
+def disambiguate_light_intent(text: str, predicted: str) -> str:
+    """Различает явные включить/выключить среди близких классов освещения."""
+    if not predicted.startswith("iot_hue_light"):
+        return predicted
+    clean = normalize(text).strip(". ")
+    for verbs, intent in (
+        (r"включи|включите|включить|зажги|зажгите", "iot_hue_lighton"),
+        (r"выключи|выключите|выключить|погаси|погасите", "iot_hue_lightoff"),
+    ):
+        if re.fullmatch(rf"(?:пожалуйста )?(?:{verbs}) (?:свет|освещение)(?: пожалуйста)?", clean):
+            return intent
+    return predicted
 
 
 def build_slot_values(annotated: list[str]) -> dict[str, list[str]]:
@@ -213,6 +234,10 @@ class Nlu:
         probabilities = self.model.predict_proba([normalize(text)])[0]
         best = int(probabilities.argmax())
         code = str(self.model.classes_[best])
+        explicit = disambiguate_light_intent(text, code)
+        if explicit in self.intent_ids:
+            code = explicit
+            best = list(self.model.classes_).index(code)
         return Prediction(self.intent_ids[code], code, round(float(probabilities[best]), 3))
 
     def find_slot(self, slot_code: str, text: str) -> str | None:
