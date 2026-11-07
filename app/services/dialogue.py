@@ -68,11 +68,7 @@ def describe(db: Session, session: DialogueSession) -> DialogueRead:
         question = "Всё верно? Скажите «да» или «нет»."
         spoken = "Я понял: " + summary + " " + question
     elif session.phase == "ready":
-        spoken = (
-            "Вы подтвердили команду. "
-            + summary
-            + " В демо команда сохранена без выполнения: устройства не подключены."
-        )
+        spoken = "Вы подтвердили команду. " + summary
     elif session.phase == "executed":
         spoken = "Исполнитель подтвердил выполнение: " + (session.execution_message or summary)
     elif session.phase == "execution_failed":
