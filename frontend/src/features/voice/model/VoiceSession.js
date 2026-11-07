@@ -85,7 +85,7 @@ export class VoiceSession {
       voiceActive: false,
       speaking: false,
       paused: true,
-      voiceState: "Пауза. Микрофон выключен, команда сохранена.",
+      voiceState: "Пауза.",
     });
   };
   speak(text, resume = false) {
@@ -95,7 +95,7 @@ export class VoiceSession {
     if (!this.getState().audioEnabled || !this.canSpeak || this.getState().paused) {
       this.onChange({
         voiceActive: false,
-        voiceState: "Микрофон выключен. Ответ доступен на странице и экранному диктору.",
+        voiceState: "Микрофон выключен.",
       });
       return;
     }
@@ -111,7 +111,7 @@ export class VoiceSession {
       this.onChange({ speaking: false });
       const { voiceActive } = this.getState();
       if (resume && voiceActive && this.canResume()) {
-        this.onChange({ voiceState: "Приготовьтесь ответить" });
+        this.onChange({ voiceState: "Включаю микрофон" });
         setTimeout(() => {
           if (epoch === this.speechEpoch && this.isConnected()) this.startListening();
         }, 250);
@@ -126,7 +126,7 @@ export class VoiceSession {
         voiceActive: false,
         paused: true,
         screenreaderMessage: text,
-        voiceState: "Озвучивание недоступно. Ответ передан экранному диктору.",
+        voiceState: "Озвучивание недоступно.",
       });
     };
     this.browser.speechSynthesis.speak(utterance);
@@ -135,12 +135,10 @@ export class VoiceSession {
     this.stopRecognition();
     if (code === "aborted") return;
     const errors = {
-      "not-allowed":
-        "Браузер не разрешил доступ к микрофону. Разрешите его в настройках сайта или введите команду текстом.",
-      "service-not-allowed":
-        "Сервис распознавания речи пока недоступен. Попробуйте позже или введите команду текстом.",
-      "audio-capture": "Микрофон не найден или занят другой программой. Проверьте его подключение.",
-      network: "Нет связи с сервисом распознавания речи. Можно ввести команду текстом.",
+      "not-allowed": "Нет доступа к микрофону.",
+      "service-not-allowed": "Распознавание речи недоступно.",
+      "audio-capture": "Микрофон не найден или занят.",
+      network: "Нет связи с распознаванием речи.",
       "language-not-supported": "Распознавание русской речи недоступно в этом браузере.",
     };
     if (errors[code]) {
@@ -155,10 +153,8 @@ export class VoiceSession {
     }
     this.noSpeechCount++;
     const retry = this.getState().voiceActive && this.noSpeechCount < 3;
-    const question = this.getQuestion() || "Скажите команду ещё раз.";
-    const message = retry
-      ? "Речь не распознана. " + question
-      : "Не удалось расслышать фразу. Микрофон выключен. Нажмите «Говорить» для новой попытки или введите текст.";
+    const question = this.getQuestion() || "Повторите.";
+    const message = retry ? "Не расслышал. " + question : "Не расслышал. Запись остановлена.";
     this.onChange({
       error: message,
       lastMessage: message,
@@ -186,8 +182,7 @@ export class VoiceSession {
       maxAlternatives: 1,
     });
     instance.onstart = () => {
-      if (epoch === this.recognitionEpoch)
-        this.onChange({ voiceState: "Слушаю. Скажите команду или ответ." });
+      if (epoch === this.recognitionEpoch) this.onChange({ voiceState: "Слушаю." });
     };
     instance.onresult = (event) => {
       if (epoch !== this.recognitionEpoch) return;

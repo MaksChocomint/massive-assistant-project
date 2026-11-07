@@ -41,7 +41,7 @@ export class AssistantController {
       paused: false,
       audioEnabled: false,
       speechRate: this.voice.initialRate,
-      lastMessage: HELLO,
+      lastMessage: "Готов.",
       screenreaderMessage: "",
       voiceState: "Микрофон выключен",
       error: null,
@@ -49,14 +49,12 @@ export class AssistantController {
       input: "",
       textEntryOpen: !this.voice.Recognition,
       voiceSupport: !this.voice.Recognition
-        ? "Голосовой ввод в этом браузере недоступен. Можно ввести команду текстом."
-        : this.voice.localRecognition
-          ? "После фразы сделайте паузу — помощник распознает запись и ответит."
-          : "",
+        ? "Голосовой ввод недоступен. Доступен текстовый ввод."
+        : "",
       localRecognition: this.voice.localRecognition,
     };
     if (!this.voice.canSpeak) {
-      this.state.voiceSupport += " Озвучивание браузером недоступно. Используйте экранный диктор.";
+      this.state.voiceSupport += " Озвучивание недоступно.";
     }
   }
 
@@ -172,8 +170,12 @@ export class AssistantController {
     if (!(await this.prepareNewCommand())) return;
     if (this.Recognition) this.voice.start(HELLO);
     else {
-      this.patch({ textEntryOpen: true, audioEnabled: this.canSpeak });
-      this.speak(HELLO);
+      this.patch({
+        textEntryOpen: true,
+        audioEnabled: this.canSpeak,
+        lastMessage: "Введите команду.",
+      });
+      this.speak("Введите команду.");
     }
   };
   runExample = async (text) => {
@@ -189,7 +191,7 @@ export class AssistantController {
   alarmFired() {
     this.stopRecognition();
     this.stopSpeech();
-    const message = "Будильник. Время вышло. Нажмите «Остановить сигнал».";
+    const message = "Время вышло.";
     this.patch({ voiceActive: false, speaking: false, paused: false });
     this.speak(message);
   }
@@ -222,7 +224,7 @@ export class AssistantController {
           }
         } catch {}
       }
-      const message = "Не удалось сохранить результат выполнения. Проверяю связь с сервером.";
+      const message = "Не удалось сохранить результат. Проверяю связь.";
       if (!this.state.error) this.speak(message);
       this.patch({ error: message, lastMessage: message });
       this.startPolling();
@@ -235,7 +237,7 @@ export class AssistantController {
     writeStorage(this.browser.localStorage, "massive.dialogue", data.id);
     const local = data.phase === "ready" && this.executor.supports(data.intent);
     const lastMessage = local
-      ? "Выполняю команду."
+      ? "Выполняю."
       : prefix
         ? prefix + " " + data.spoken_text
         : data.spoken_text;
@@ -277,8 +279,7 @@ export class AssistantController {
         await this.performLocal(data);
       } else if (++this.pollCount >= 60) {
         this.stopPolling();
-        const message =
-          "Команда сохранена. Ответ от устройства пока не получен. Кнопка «Повторить вслух» проверит состояние ещё раз.";
+        const message = "Ответ устройства пока не получен.";
         this.patch({ lastMessage: message });
         this.log("Помощник", message);
         this.speak(message);
