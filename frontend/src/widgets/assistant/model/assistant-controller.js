@@ -136,6 +136,34 @@ export class AssistantController {
       this.reset({ readAloud: false });
     this.voice.start(this.state.current?.spoken_text || HELLO);
   };
+  startNewCommand = async () => {
+    if (this.state.busy) return;
+    const current = this.state.current;
+    if (current && ACTIVE_PHASES.has(current.phase)) {
+      this.stopRecognition();
+      this.stopSpeech();
+      this.patch({ busy: true, voiceActive: false, speaking: false, error: null });
+      const epoch = this.epoch;
+      try {
+        await this.api("/" + current.id + "/cancel", { method: "POST" });
+        if (!this.connected || epoch !== this.epoch) return;
+      } catch (error) {
+        if (this.connected && epoch === this.epoch) {
+          this.patch({ error: error.message, lastMessage: error.message });
+          this.speak(error.message);
+        }
+        return;
+      } finally {
+        if (this.connected && epoch === this.epoch) this.patch({ busy: false });
+      }
+    }
+    this.reset({ readAloud: false });
+    if (this.Recognition) this.voice.start(HELLO);
+    else {
+      this.patch({ textEntryOpen: true, audioEnabled: this.canSpeak });
+      this.speak(HELLO);
+    }
+  };
   render(data, { prefix = "", readAloud = true } = {}) {
     writeStorage(this.browser.localStorage, "massive.dialogue", data.id);
     const lastMessage = prefix ? prefix + " " + data.spoken_text : data.spoken_text;
@@ -285,6 +313,7 @@ export class AssistantController {
   };
   reset = ({ readAloud = true } = {}) => {
     if (this.state.busy) return;
+    this.epoch++;
     this.stopPolling();
     this.stopRecognition();
     this.stopSpeech();

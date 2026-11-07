@@ -29,7 +29,7 @@ export function Assistant() {
         canSpeak={c.canSpeak}
         onRepeat={c.repeat}
         onCancel={c.cancel}
-        onNew={() => c.reset()}
+        onNew={c.startNewCommand}
       />
       <TextEntry state={s} onInput={c.setInput} onSubmit={c.send} onOpen={c.setTextEntryOpen} />
       <DialogueDetails state={s} />
