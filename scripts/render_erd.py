@@ -1,4 +1,4 @@
-"""Build the presentation ER diagram from ORM metadata, without connecting to the DB.
+"""Build the database ER diagram from ORM metadata, without connecting to the DB.
 
 Run: python -m scripts.render_erd
 """

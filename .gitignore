@@ -10,10 +10,6 @@ htmlcov/
 coverage.xml
 coverage.json
 .playwright-cli/
-output/playwright/
-output/*
-!output/pdf/
-!output/diagrams/
 *.log
 *.sqlite
 *.sqlite3
@@ -26,3 +22,19 @@ data/models/
 /*.pdf
 node_modules/
 app/static/ui/
+
+# Local presentation, defense notes and generated exports
+output/
+app/static/presentation.*
+docs/defense.md
+docs/visual-design.md
+docs/requirements-audit.md
+docs/readme-audit.md
+app/static/assets/app-dialogue.png
+app/static/assets/assistive-context.png
+app/static/assets/dialogue-core.png
+app/static/assets/future-connections.png
+app/static/assets/missing-context.png
+app/static/assets/demo-alarm.png
+app/static/assets/demo-light.png
+app/static/assets/demo-datetime.png
