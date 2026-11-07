@@ -155,3 +155,83 @@ test("Повторное нажатие отправки не создаёт в�
   assert.equal(controller.getSnapshot().busy, false);
   disconnect();
 });
+
+test("Новая команда доступна сразу и запускает запись после одного приглашения", async () => {
+  for (const phase of [
+    null,
+    "clarifying",
+    "awaiting_confirmation",
+    "ready",
+    "cancelled",
+    "executed",
+  ]) {
+    const env = browser();
+    const requests = [];
+    const controller = new AssistantController({
+      browser: env,
+      api: async (path, options) => {
+        requests.push({ path, method: options?.method });
+        return dialogue("cancelled");
+      },
+    });
+    const disconnect = controller.connect();
+    if (phase) controller.render(dialogue(phase), { readAloud: false });
+    await controller.startNewCommand();
+    await delay(280);
+    assert.equal(env.calls.starts, 1, phase ?? "initial");
+    assert.equal(controller.getSnapshot().current, null);
+    assert.equal(controller.getSnapshot().voiceActive, true);
+    assert.equal(env.saved.has("massive.dialogue"), false);
+    assert.deepEqual(
+      env.calls.spoken.map((u) => u.text),
+      [HELLO],
+    );
+    assert.deepEqual(
+      requests,
+      ["clarifying", "awaiting_confirmation"].includes(phase)
+        ? [{ path: "/42/cancel", method: "POST" }]
+        : [],
+    );
+    disconnect();
+  }
+});
+
+test("Позднее восстановление не возвращает старый диалог после Новой команды", async () => {
+  const env = browser();
+  env.saved.set("massive.dialogue", "42");
+  let finish;
+  const controller = new AssistantController({
+    browser: env,
+    api: () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  });
+  const disconnect = controller.connect();
+  await controller.startNewCommand();
+  finish(dialogue("cancelled"));
+  await delay(280);
+  assert.equal(controller.getSnapshot().current, null);
+  assert.equal(env.calls.starts, 1);
+  assert.equal(controller.getSnapshot().voiceActive, true);
+  disconnect();
+});
+
+test("Ошибка отмены сохраняет текущий диалог и не включает новый микрофон", async () => {
+  const env = browser();
+  const controller = new AssistantController({
+    browser: env,
+    api: async () => {
+      throw new Error("Нет связи");
+    },
+  });
+  const disconnect = controller.connect();
+  controller.render(dialogue("clarifying"), { readAloud: false });
+  await controller.startNewCommand();
+  await delay(280);
+  assert.equal(controller.getSnapshot().current.id, 42);
+  assert.equal(controller.getSnapshot().busy, false);
+  assert.equal(controller.getSnapshot().error, "Нет связи");
+  assert.equal(env.calls.starts, 0);
+  disconnect();
+});

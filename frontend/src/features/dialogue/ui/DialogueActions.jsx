@@ -23,14 +23,7 @@ export function DialogueActions({ current, busy, canSpeak, onRepeat, onCancel, o
       >
         Отменить команду
       </button>
-      <button
-        id="new-button"
-        className="button"
-        type="button"
-        hidden={!current || active}
-        disabled={busy}
-        onClick={onNew}
-      >
+      <button id="new-button" className="button" type="button" disabled={busy} onClick={onNew}>
         Новая команда
       </button>
     </div>
