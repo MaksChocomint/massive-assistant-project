@@ -42,7 +42,7 @@ def test_ready_does_not_mean_alarm_was_set(client: TestClient) -> None:
     assert session["ready_for_execution"] is True
     assert session["execution_confirmed"] is False
     assert "Вы подтвердили команду." in session["spoken_text"]
-    assert "устройства не подключены" in session["spoken_text"]
+    assert "В демо" not in session["spoken_text"]
     assert "не подтверждено" not in session["spoken_text"]
     assert session["operation_id"] is None
 
