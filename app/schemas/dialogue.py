@@ -3,6 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.commands import SlotValueRead
+from app.schemas.users import UserRead
 
 DialoguePhase = Literal[
     "clarifying",
@@ -38,6 +39,7 @@ class ExecutionReceipt(BaseModel):
 class DialogueRead(BaseModel):
     id: int
     text: str
+    user: UserRead
     phase: DialoguePhase
     intent: str
     intent_name: str
