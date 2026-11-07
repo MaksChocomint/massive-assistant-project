@@ -54,7 +54,7 @@ ready_for_execution=true только в ready. execution_confirmed=true тол�
 
 ## Ответ и границы
 
-Ответ содержит id, phase, intent, intent_name, confidence, slots (slot/name/value),
+Ответ содержит id, user (id/username/name/created_at), phase, intent, intent_name, confidence, slots (slot/name/value),
 question, spoken_text, ready_for_execution, execution_confirmed, operation_id и
 execution_message. Пустой текст отклоняется с 422; ошибки бизнес-правил дают 400,
 недопустимые переходы — 409, неизвестный id — 404. Ошибки имеют единый формат error.
