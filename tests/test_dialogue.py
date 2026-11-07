@@ -36,6 +36,13 @@ def test_filled_slots_require_explicit_confirmation(client: TestClient) -> None:
     assert session["execution_confirmed"] is False
 
 
+def test_one_minute_alarm_is_ready_for_confirmation(client: TestClient) -> None:
+    session = start(client, "поставь будильник через минуту")
+    assert session["phase"] == "awaiting_confirmation"
+    assert [(s["slot"], s["value"]) for s in session["slots"]] == [("time", "через минуту")]
+    assert session["execution_confirmed"] is False
+
+
 def test_ready_does_not_mean_alarm_was_set(client: TestClient) -> None:
     session = ready(client)
     assert session["phase"] == "ready"
