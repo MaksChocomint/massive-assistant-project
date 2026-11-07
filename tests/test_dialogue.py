@@ -23,6 +23,8 @@ def test_dialogue_does_not_require_user_selection(client: TestClient) -> None:
     assert session["phase"] == "clarifying"
     assert session["spoken_text"] == "На какое время поставить будильник?"
     assert "user_id" not in session
+    assert session["user"]["username"] == "maksim_ivanov"
+    assert session["user"]["name"] == "maksim ivanov"
     assert session["execution_confirmed"] is False
     assert session["ready_for_execution"] is False
 
