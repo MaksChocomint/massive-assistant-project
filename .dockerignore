@@ -10,3 +10,5 @@ docs
 .playwright-cli
 output
 data/models
+frontend/node_modules
+app/static/ui

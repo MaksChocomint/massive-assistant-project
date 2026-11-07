@@ -180,7 +180,10 @@ def test_train_nlu(client: TestClient) -> None:
 
 def test_health_and_ui(client: TestClient) -> None:
     assert client.get("/api/health").json() == {"status": "ok"}
-    assert client.get("/").status_code == 200
+    response = client.get("/")
+    assert response.status_code == 200
+    assert 'id="root"' in response.text
+    assert "/static/ui/assets/" in response.text
     assert client.get("/docs").status_code == 200
     assert client.get("/presentation").status_code == 200
 
