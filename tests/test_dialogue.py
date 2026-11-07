@@ -41,7 +41,9 @@ def test_ready_does_not_mean_alarm_was_set(client: TestClient) -> None:
     assert session["phase"] == "ready"
     assert session["ready_for_execution"] is True
     assert session["execution_confirmed"] is False
-    assert "пока не подтверждено" in session["spoken_text"]
+    assert "Вы подтвердили команду." in session["spoken_text"]
+    assert "устройства не подключены" in session["spoken_text"]
+    assert "не подтверждено" not in session["spoken_text"]
     assert session["operation_id"] is None
 
 
@@ -97,6 +99,24 @@ def test_invalid_time_can_be_corrected(client: TestClient) -> None:
     assert client.get(path).json()["phase"] == "clarifying"
     fixed = client.post(path + "/answer", json={"answer": "семь утра"})
     assert fixed.json()["phase"] == "awaiting_confirmation"
+
+
+@pytest.mark.parametrize("in_initial_command", [False, True])
+def test_spoken_hours_and_minutes_are_preserved(
+    client: TestClient, in_initial_command: bool
+) -> None:
+    time = "семь часов десять минут"
+    session = start(
+        client, f"поставь будильник на {time}" if in_initial_command else "поставь будильник"
+    )
+    if not in_initial_command:
+        response = client.post(f"/api/dialogues/{session['id']}/answer", json={"answer": time})
+        assert response.status_code == 200
+        session = response.json()
+    assert session["intent"] == "alarm_set"
+    assert session["phase"] == "awaiting_confirmation"
+    assert [(slot["slot"], slot["value"]) for slot in session["slots"]] == [("time", time)]
+    assert time in session["spoken_text"]
 
 
 def test_attempt_limit_is_announced_as_failure(client: TestClient) -> None:

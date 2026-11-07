@@ -23,17 +23,56 @@ from app.core.errors import BusinessError, ServiceUnavailableError
 from app.etl.import_massive import SLOT_PATTERN
 from app.models import Intent, Utterance
 
-# Значения, которые точно похожи на время или дату
-NUMBER = (
-    r"(?:\d+|один|одну|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять|"
-    r"одиннадцать|двенадцать|пятнадцать|двадцать|тридцать|сорок|пятьдесят)"
-)
+# Сначала выделяем выражение целиком, затем проверяем диапазоны.
+# Иначе «7 часов 70 минут» могло бы незаметно превратиться в «7 часов».
+SMALL_NUMBERS = {
+    "ноль": 0,
+    "нуль": 0,
+    "один": 1,
+    "одна": 1,
+    "одну": 1,
+    "два": 2,
+    "две": 2,
+    "три": 3,
+    "четыре": 4,
+    "пять": 5,
+    "шесть": 6,
+    "семь": 7,
+    "восемь": 8,
+    "девять": 9,
+    "десять": 10,
+    "одиннадцать": 11,
+    "двенадцать": 12,
+    "тринадцать": 13,
+    "четырнадцать": 14,
+    "пятнадцать": 15,
+    "шестнадцать": 16,
+    "семнадцать": 17,
+    "восемнадцать": 18,
+    "девятнадцать": 19,
+}
+TENS = {
+    "двадцать": 20,
+    "тридцать": 30,
+    "сорок": 40,
+    "пятьдесят": 50,
+    "шестьдесят": 60,
+    "семьдесят": 70,
+    "восемьдесят": 80,
+    "девяносто": 90,
+}
+NUMBER_WORD = "(?:" + "|".join([*SMALL_NUMBERS, *TENS, "сто"]) + ")"
+NUMBER = rf"(?:\d+|{NUMBER_WORD}(?: {NUMBER_WORD}){{0,3}})"
+HOUR_UNIT = r"час(?:а|ов)?"
+MINUTE_UNIT = r"минут(?:а|у|ы)?"
+PERIOD = r"(?:утра|вечера|дня|ночи)"
 TIME_RE = re.compile(
-    r"\b((?:[01]?\d|2[0-3])[:.][0-5]\d(?![\d:.])|"
-    r"(?:[01]?\d|2[0-3]) (час\w*|утра|вечера|дня|ночи)|"
-    r"(один|два|три|четыре|пять|шесть|семь|восемь|девять|десять|одиннадцать|двенадцать)"
-    r"( час\w*)? (утра|вечера|дня|ночи)|"
-    rf"через (?:{NUMBER} (?:минут\w*|час\w*)|час|полчаса)|полдень|полночь)\b"
+    rf"(?<![\w:.+-])(?:"
+    rf"через (?:(?P<duration>{NUMBER}) (?:{MINUTE_UNIT}|{HOUR_UNIT})|час|полчаса)|"
+    r"(?P<clock_hour>\d+)[:.](?P<clock_minute>\d+)|"
+    rf"(?P<hour>{NUMBER})(?: {HOUR_UNIT}"
+    rf"(?: (?P<minute>{NUMBER})(?: {MINUTE_UNIT})?)?(?: {PERIOD})?| {PERIOD})|"
+    r"полдень|полночь)(?![\w:.])"
 )
 DATE_RE = re.compile(
     r"\b(сегодня|завтра|послезавтра|понедельник|вторник|сред[ау]|четверг|пятниц[ау]|"
@@ -48,6 +87,46 @@ def normalize(text: str) -> str:
     text = text.lower().replace("ё", "е")
     text = re.sub(r"[^\w\s:.-]", " ", text)
     return " ".join(text.split())
+
+
+def number_value(text: str) -> int | None:
+    """Цифры или русское количественное числительное до 99."""
+    if text.isdecimal():
+        return int(text)
+    words = text.split()
+    if len(words) == 1:
+        return SMALL_NUMBERS.get(text, TENS.get(text))
+    if len(words) == 2 and words[0] in TENS:
+        unit = SMALL_NUMBERS.get(words[1])
+        if unit is not None and 1 <= unit <= 9:
+            return TENS[words[0]] + unit
+    return None
+
+
+def find_formatted_slot(code: str, text: str) -> str | None:
+    """Единая проверка формата для исходной команды и ответа на вопрос."""
+    for match in FORMAT_RULES[code].finditer(normalize(text)):
+        if code == "time":
+            groups = match.groupdict()
+            if groups["clock_hour"] is not None:
+                if not (
+                    0 <= int(groups["clock_hour"]) <= 23
+                    and len(groups["clock_hour"]) <= 2
+                    and len(groups["clock_minute"]) == 2
+                    and 0 <= int(groups["clock_minute"]) <= 59
+                ):
+                    continue
+            elif groups["hour"] is not None:
+                hour = number_value(groups["hour"])
+                minute = number_value(groups["minute"]) if groups["minute"] else 0
+                if hour is None or minute is None or not (0 <= hour <= 23 and 0 <= minute <= 59):
+                    continue
+            elif groups["duration"] is not None:
+                duration = number_value(groups["duration"])
+                if duration is None or duration <= 0:
+                    continue
+        return match.group(0)
+    return None
 
 
 def build_slot_values(annotated: list[str]) -> dict[str, list[str]]:
@@ -140,8 +219,7 @@ class Nlu:
         """Ищет в тексте значение параметра: сначала по формату, затем по словарю."""
         clean = normalize(text)
         if slot_code in FORMAT_RULES:
-            match = FORMAT_RULES[slot_code].search(clean)
-            return match.group(0) if match else None
+            return find_formatted_slot(slot_code, clean)
         for value in self.slot_values.get(slot_code, []):
             if re.search(rf"\b{re.escape(value)}\b", clean):
                 return value

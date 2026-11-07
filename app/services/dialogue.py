@@ -69,9 +69,9 @@ def describe(db: Session, session: DialogueSession) -> DialogueRead:
         spoken = "Я понял: " + summary + " " + question
     elif session.phase == "ready":
         spoken = (
-            "Команда подтверждена. "
+            "Вы подтвердили команду. "
             + summary
-            + (" Ожидается ответ исполнителя. Выполнение действия пока не подтверждено.")
+            + " В демо команда сохранена без выполнения: устройства не подключены."
         )
     elif session.phase == "executed":
         spoken = "Исполнитель подтвердил выполнение: " + (session.execution_message or summary)

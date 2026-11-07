@@ -90,12 +90,48 @@ def test_find_slot(loaded_db: Session) -> None:
     assert nlu.find_slot("transport_type", "билет на поезд до казани") is not None
 
 
-@pytest.mark.parametrize("text", ["99:99", "25:15", "7:70", "через музыку", "99 часов"])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "99:99",
+        "25:15",
+        "7:70",
+        "через музыку",
+        "99 часов",
+        "двадцать четыре часа",
+        "семь часов семьдесят минут",
+        "7 часов 70 минут",
+        "25 часов 10 минут",
+        "7:300",
+        "через ноль минут",
+        "-7:30",
+    ],
+)
 def test_invalid_time_is_rejected(text: str) -> None:
     assert Nlu().find_slot("time", text) is None
 
 
-@pytest.mark.parametrize("text", ["7:30", "07.30", "23:59", "через пять минут", "через час"])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "7:30",
+        "07.30",
+        "23:59",
+        "через пять минут",
+        "через час",
+        "семь часов десять минут",
+        "7 часов 10 минут",
+        "семь часов",
+        "семь часов десять минут утра",
+        "двадцать три часа пятьдесят девять минут",
+        "ноль часов пять минут",
+        "тринадцать часов пятнадцать минут",
+        "через двадцать пять минут",
+        "через полчаса",
+        "полдень",
+        "семь утра",
+    ],
+)
 def test_supported_time_formats(text: str) -> None:
     assert Nlu().find_slot("time", text) == text
 
