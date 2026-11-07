@@ -724,3 +724,91 @@ td:first-child {
     font-size: 13px;
   }
 }
+
+.capabilities-table td {
+  vertical-align: top;
+}
+.capabilities-table th:first-child {
+  width: 26%;
+}
+.capabilities-table th:nth-child(2) {
+  width: 36%;
+}
+.capability-warning {
+  font-size: 14px;
+  line-height: 1.7;
+  border-left: 3px solid #d29400;
+  padding: 10px 16px;
+  background: #fff8e8;
+  margin: 20px 0 0;
+}
+@media print {
+  .capabilities-table {
+    font-size: 12px;
+  }
+  .capabilities-table th,
+  .capabilities-table td {
+    padding: 11px 12px;
+  }
+  .capability-warning {
+    font-size: 12px;
+    margin-top: 16px;
+  }
+}
+
+.pipeline-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: #284dd4;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 14px 0;
+  margin: 0 0 18px;
+  border-top: 1px solid #dce2ec;
+  border-bottom: 1px solid #dce2ec;
+}
+.pipeline-summary > span {
+  color: #8a96af;
+}
+.terminology-table th:first-child,
+.terminology-table td:first-child {
+  width: 15%;
+}
+.terminology-table th:nth-child(2) {
+  width: 39%;
+}
+.terminology-table th,
+.terminology-table td {
+  padding: 8px 12px;
+}
+@media (max-width: 800px) {
+  .pipeline-summary {
+    font-size: 14px;
+    gap: 7px;
+  }
+  .terminology-table {
+    min-width: 0;
+    font-size: 12px;
+  }
+  .terminology-table th,
+  .terminology-table td {
+    padding: 7px 6px;
+    overflow-wrap: anywhere;
+  }
+}
+@media print {
+  .pipeline-summary {
+    font-size: 15px;
+    padding: 11px 0;
+    margin-bottom: 14px;
+  }
+  .terminology-table {
+    font-size: 12px;
+  }
+  .terminology-table th,
+  .terminology-table td {
+    padding: 8px 10px;
+  }
+}
