@@ -32,6 +32,13 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements-dev.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
       - name: Тесты с покрытием (не ниже 70 %)
         run: pytest --cov-report=xml
       - uses: actions/upload-artifact@v4
@@ -47,11 +54,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: JavaScript syntax
-        run: |
-          node --check app/static/app.js
-          node --check app/static/speech-recognition.js
-          node --check app/static/speech-capture-worklet.js
+      - run: npm ci --prefix frontend
+      - run: npm run format:check --prefix frontend
+      - run: npm test --prefix frontend
+      - run: npm run build --prefix frontend
 
   migrations:
     runs-on: ubuntu-latest

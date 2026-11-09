@@ -1,3 +1,10 @@
+FROM node:22-slim AS frontend
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend ./
+RUN npm run build
+
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -18,6 +25,7 @@ COPY alembic.ini .
 COPY migrations ./migrations
 COPY app ./app
 COPY data ./data
+COPY --from=frontend /app/static/ui ./app/static/ui
 
 RUN useradd --create-home app
 USER app

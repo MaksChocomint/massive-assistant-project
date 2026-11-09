@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api import analytics, catalog, commands, dialogue, speech
 from app.core.config import settings
-from app.core.errors import register_error_handlers
+from app.core.errors import ServiceUnavailableError, register_error_handlers
 
 logging.basicConfig(
     level=settings.log_level, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -18,7 +18,7 @@ logging.basicConfig(
 STATIC = Path(__file__).parent / "static"
 
 app = FastAPI(
-    title="MASSIVE: ассистивный микросервис уточнения команд",
+    title="MASSIVE: ассистивный сервис уточнения команд",
     description="Голосовой диалог для невизуального взаимодействия: уточнение параметров, "
     "проговаривание, подтверждение пользователя и квитанция внешнего исполнителя. "
     "Распознавание намерений основано на MASSIVE; устройства напрямую не управляются.",
@@ -34,8 +34,13 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
-    """Веб-интерфейс (HTML + JS), работает через этот же API."""
-    return FileResponse(STATIC / "index.html")
+    """React-интерфейс, собранный Vite; использует тот же API."""
+    index_path = STATIC / "ui" / "index.html"
+    if not index_path.is_file():
+        raise ServiceUnavailableError(
+            "React-интерфейс не собран: выполните npm ci и npm run build в папке frontend"
+        )
+    return FileResponse(index_path)
 
 
 @app.get("/api/health", tags=["Служебное"])
