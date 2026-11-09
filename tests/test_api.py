@@ -186,6 +186,7 @@ def test_health_and_ui(client: TestClient) -> None:
     assert "/static/ui/assets/" in response.text
     assert client.get("/docs").status_code == 200
     assert client.get("/presentation").status_code == 404
+    assert client.get("/history").status_code == 200
 
 
 @pytest.mark.parametrize(
