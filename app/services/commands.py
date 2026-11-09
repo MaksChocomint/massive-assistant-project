@@ -18,7 +18,7 @@ from app.core.config import settings
 from app.core.errors import BusinessError, ConflictError, NotFoundError
 from app.models import Command, CommandSlot, IntentSlot, User
 from app.repositories import commands as repo
-from app.services.nlu import FORMAT_RULES, get_nlu, normalize
+from app.services.nlu import FORMAT_RULES, find_formatted_slot, get_nlu, normalize
 
 ACTIVE = "needs_clarification"
 EXPECTED = {"time": "время", "date": "дату"}
@@ -88,8 +88,8 @@ def clarify_command(db: Session, command_id: int, answer: str) -> Command:
     code = slot.slot_type.code
     value = normalize(answer)
     if code in FORMAT_RULES:
-        match = FORMAT_RULES[code].search(value)
-        if match is None:
+        formatted = find_formatted_slot(code, value)
+        if formatted is None:
             # неудачная попытка тоже считается: иначе можно спрашивать бесконечно
             command.clarifications += 1
             update_status(db, command)
@@ -97,7 +97,7 @@ def clarify_command(db: Session, command_id: int, answer: str) -> Command:
             if command.status == "failed":
                 raise ConflictError("Слишком много неудачных уточнений, команда отклонена")
             raise BusinessError(f"Ответ «{answer}» не похож на {EXPECTED[code]}")
-        value = match.group(0)
+        value = formatted
 
     command.slots.append(CommandSlot(slot_type_id=slot.slot_type_id, value=value))
     command.clarifications += 1
