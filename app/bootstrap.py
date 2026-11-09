@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.db import SessionLocal
 from app.etl.import_massive import run
 from app.seed import seed
+from app.services.profiles import ensure_owner
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,6 +33,7 @@ def main(argv: list[str] | None = None) -> None:
         with SessionLocal() as db:
             run(db, ROOT / "data" / "massive_ru.csv")
             seed(db)
+            ensure_owner(db)
 
 
 if __name__ == "__main__":

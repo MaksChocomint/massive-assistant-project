@@ -3,6 +3,7 @@ export function DialogueDetails({ state: s }) {
   const payload = d
     ? {
         dialogue_id: d.id,
+        user: d.user,
         phase: d.phase,
         intent: d.intent,
         slots: Object.fromEntries(d.slots.map((slot) => [slot.slot, slot.value])),

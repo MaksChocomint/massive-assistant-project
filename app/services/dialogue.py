@@ -5,34 +5,19 @@
 """
 
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, BusinessError, ConflictError, NotFoundError
-from app.models import Command, DialogueSession, User
+from app.models import Command, DialogueSession
 from app.schemas.commands import SlotValueRead
 from app.schemas.dialogue import DialogueRead, ExecutionReceipt
+from app.schemas.users import UserRead
 from app.services import commands
 from app.services.nlu import normalize
+from app.services.profiles import ensure_owner
 
 YES = {"да", "подтверждаю", "верно", "правильно", "все верно", "все правильно", "согласен", "ага"}
 NO = {"нет", "неверно", "неправильно", "не то", "ошибка", "отмена", "отмени"}
-PROFILE = "voice_dialogue"
-
-
-def _profile(db: Session) -> User:
-    """Технический профиль демонстрации, без выбора аккаунта в интерфейсе."""
-    user = db.scalar(select(User).where(User.username == PROFILE))
-    if user is None:
-        user = User(username=PROFILE, name="Голосовой диалог")
-        db.add(user)
-        try:
-            db.commit()
-        except IntegrityError:
-            db.rollback()
-            user = db.scalar(select(User).where(User.username == PROFILE))
-            assert user is not None
-    return user
 
 
 def _get(db: Session, session_id: int) -> DialogueSession:
@@ -82,6 +67,7 @@ def describe(db: Session, session: DialogueSession) -> DialogueRead:
     return DialogueRead(
         id=command.id,
         text=command.text,
+        user=UserRead.model_validate(command.user),
         phase=session.phase,
         intent=command.intent.code,
         intent_name=command.intent.name,
@@ -97,7 +83,7 @@ def describe(db: Session, session: DialogueSession) -> DialogueRead:
 
 
 def create(db: Session, text: str) -> DialogueRead:
-    command = commands.create_command(db, _profile(db).id, text)
+    command = commands.create_command(db, ensure_owner(db).id, text)
     session = DialogueSession(command_id=command.id, phase="clarifying")
     _advance(session, command)
     db.add(session)

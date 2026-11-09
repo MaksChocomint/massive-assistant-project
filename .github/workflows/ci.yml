@@ -111,7 +111,9 @@ jobs:
           with urlopen('http://localhost:8000/api/intents?limit=1') as response:
               assert json.load(response)['total'] == 60
           with urlopen('http://localhost:8000/api/users') as response:
-              assert len(json.load(response)) == 3
+              users = {user['username']: user for user in json.load(response)}
+              assert set(users) == {'ivan', 'maria', 'alex', 'maksim_ivanov'}
+              assert users['maksim_ivanov']['name'] == 'maksim ivanov'
           PY
       - name: Логи контейнеров
         if: always()
