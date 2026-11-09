@@ -33,7 +33,8 @@ def test_filled_slots_require_explicit_confirmation(client: TestClient) -> None:
     session = start(client, "разбуди меня в семь утра")
     assert session["phase"] == "awaiting_confirmation"
     assert "семь утра" in session["spoken_text"]
-    assert "да" in session["question"]
+    assert session["question"] == "Подтверждаете?"
+    assert "Скажите" not in session["spoken_text"]
     assert session["ready_for_execution"] is False
     assert session["execution_confirmed"] is False
 
@@ -50,7 +51,7 @@ def test_ready_does_not_mean_alarm_was_set(client: TestClient) -> None:
     assert session["phase"] == "ready"
     assert session["ready_for_execution"] is True
     assert session["execution_confirmed"] is False
-    assert "Вы подтвердили команду." in session["spoken_text"]
+    assert session["spoken_text"] == "Ожидаю выполнения."
     assert "В демо" not in session["spoken_text"]
     assert "не подтверждено" not in session["spoken_text"]
     assert session["operation_id"] is None
@@ -69,6 +70,7 @@ def test_execution_receipt_is_required_and_idempotent(client: TestClient) -> Non
     assert first.json()["phase"] == "executed"
     assert first.json()["execution_confirmed"] is True
     assert first.json()["execution_message"] == receipt["message"]
+    assert first.json()["spoken_text"] == receipt["message"]
     assert client.post(path, json=receipt).json() == first.json()
     assert client.post(path, json={**receipt, "message": "другой результат"}).status_code == 409
 

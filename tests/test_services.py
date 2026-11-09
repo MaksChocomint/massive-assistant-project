@@ -38,7 +38,7 @@ def test_clarify_fills_slot(loaded_db: Session) -> None:
 
 def test_time_cannot_be_arbitrary_text(loaded_db: Session) -> None:
     command = commands.create_command(loaded_db, user_id(loaded_db), "поставь будильник")
-    with pytest.raises(BusinessError, match="не похож на время"):
+    with pytest.raises(BusinessError, match="Не удалось определить время"):
         commands.clarify_command(loaded_db, command.id, "напиши музыку")
     assert commands.get_command(loaded_db, command.id).clarifications == 1
 

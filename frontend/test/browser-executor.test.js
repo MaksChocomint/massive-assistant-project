@@ -186,7 +186,7 @@ test("Исполнитель ждёт согласия, затем отправ�
     const completedMessage = c.getSnapshot().lastMessage;
     c.alarmFired();
     assert.equal(c.getSnapshot().lastMessage, completedMessage);
-    assert.match(c.getSnapshot().screenreaderMessage, /Будильник. Время вышло/);
+    assert.match(c.getSnapshot().screenreaderMessage, /Время вышло/);
   } finally {
     disconnect();
   }

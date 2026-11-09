@@ -6,7 +6,6 @@ export function ExecutionPanel({ state, busy, onExample, onDismiss, onEnableAudi
   return (
     <aside className="execution-panel" aria-label="Будильник, свет, дата и время">
       <h2>Попробуйте команды</h2>
-      <p className="execution-caption">Действия выполняются в этой вкладке после вашего «да».</p>
       <section aria-labelledby="alarm-title">
         <h3 id="alarm-title">Будильник</h3>
         <button
